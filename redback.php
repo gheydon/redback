@@ -132,7 +132,7 @@ array
 /*
  * Private varibles
  */
-  private $_comms_layer = 'socket';
+  private $_comms_layer = '';
   private $_url_parts = '';
   private $_object = '';
   private $_properties = NULL;
@@ -205,7 +205,7 @@ array
       $data = implode('&', $data);
     }
     else {
-      $data = NULL;
+      $data = 'redbeans=1';
     }
     return $data;
   }
@@ -277,14 +277,55 @@ array
 
   private function _rgw_callmethod($method) {
     $debug = array('tx' => '', 'rx' => '');
-    $data = $this->_build_data();
+    $qs = $this->_build_data();
 
-    $fp = pfsockopen($this->_url_parts['host'], $this->_url_parts['port'] ? $this->_url_parts['port'] : 80, $errno, $errstr, 30);
+    $fp = pfsockopen($this->_url_parts['host'], $this->_url_parts['port'], $errno, $errstr, 30);
     if (!$fp) {
       echo "$errstr ($errno)<br />\n";
     } else {
-      $header = sprintf('PATH_INFO%sHTTP_USER_AGENT%sQUERY_STRING%sSPIDER_VERSION%sRGWHOST%sRGWADDR', AM, AM, AM, AM, AM);
+      $header = sprintf("PATH_INFO\xfeHTTP_USER_AGENT\xfeQUERY_STRING\xfeSPIDER_VERSION\xfeRGWHOST\xfeRGWADDR");
+      $data = sprintf("/rbo/%s\xferedback=1\xfe%s\xfe101\xfe%s\xfe%s", $method, $qs, $hostname, $ipaddr);
+      $out = sprintf('%010d%s%010d%s', strlen($header), $header, strlen($data), $data);
+      fwrite($fp, $out);
+      /*
+       * set up debug information
+       */
+      if ($this->_debug_mode) {
+        $debug['tx'] = $out;
+      }
+      while (!feof($fp)) {
+        $length = fread($fp, 10);
+        if ($this->_debug_mode) {
+          $debug['rx'] .= $length;
+        }
+        if (is_numeric($length) && intval($length) > 0) {
+          $s = fread($fp, intval($length));
+          if ($this->_debug_mode) {
+            $debug['rx'] .= $s;
+          }
+          if (preg_match('/^N/', $s)) { // Only look at N type records
+            $s = substr($s, 1);
+            foreach (explode("\n", $s) as $v) {
+              if (preg_match('/^(.*)=(.*)/', $v, $match)) {
+                $this->_properties[$match[1]]['data'] = urldecode($match[2]);
+              }
+            }
+          }
+        }
+      }
+      if (array_key_exists('HID_FIELDNAMES', $this->_properties)) {
+        $ret = new redset($this);
+      }
+      else {
+        $ret = true;
+      }
     }
+    fclose($fp);
+    $this->_tainted = false;
+    if ($this->_debug_mode) {
+      $this->__Debug_Data[] = $debug;
+    }
+    return $ret;
   }
  
   private function _buildmv($v) {
