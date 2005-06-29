@@ -47,14 +47,14 @@ class redback {
     if (is_array($property)) {
       // process array of values to set
       foreach ($property as $k => $v) {
-        if ($this->_check_property_access($k) || $override) {
+        if ($override || $this->_check_property_access($k)) {
           $this->_properties[$k]['data'] = $v;
           $this->_properties[$k]['tainted'] = true;          
         }
       }
     }
     else {
-      if ($this->_check_property_access($property) || $override) {
+      if ($override || $this->_check_property_access($property)) {
         $this->_properties[$property]['data'] = $value;
         $this->_properties[$property]['tainted'] = true;
       }
@@ -96,7 +96,7 @@ array
 
 */  
   public function getproperty($property, $override = false) {
-    if ($this->_check_property_access($property) || $override) {
+    if ($override || $this->_check_property_access($property)) {
       if (!strstr($this->_properties[$property]['data'], AM) && 
           !strstr($this->_properties[$property]['data'], VM) && 
           !strstr($this->_properties[$property]['data'], SV)) {
