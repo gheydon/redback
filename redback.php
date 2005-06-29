@@ -214,7 +214,7 @@ array
     $debug = array('tx' => '', 'rx' => '');
     $data = $this->_build_data();
 
-    $fp = pfsockopen($this->_url_parts['host'], $this->_url_parts['port'] ? $this->_url_parts['port'] : 80, $errno, $errstr, 300);
+    $fp = pfsockopen($this->_url_parts['host'], $this->_url_parts['port'] ? $this->_url_parts['port'] : 80, $errno, $errstr, 30);
     if (!$fp) {
       echo "$errstr ($errno)<br />\n";
     } else {
