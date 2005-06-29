@@ -214,7 +214,7 @@ array
     $debug = array('tx' => '', 'rx' => '');
     $data = $this->_build_data();
 
-    $fp = pfsockopen($this->_url_parts['host'], $this->_url_parts['port'] ? $this->_url_parts['port'] : 80, $errno, $errstr, 30);
+    $fp = pfsockopen($this->_url_parts['host'], $this->_url_parts['port'] ? $this->_url_parts['port'] : 80, $errno, $errstr, 300);
     if (!$fp) {
       echo "$errstr ($errno)<br />\n";
     } else {
@@ -225,6 +225,7 @@ array
         $out .= "Content-Type: application/x-www-form-urlencoded\r\n";
         $out .= "Content-Length: " .strlen($data) ."\r\n";
       }
+      $out .= "Keep-Alive: 300\r\n";
       $out .= "Connection: Keep-Alive\r\n\r\n";
       if ($data) {
         $out .= "$data";
