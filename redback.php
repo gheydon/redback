@@ -299,7 +299,16 @@ array
           $debug['rx'] .= $length;
         }
         if (is_numeric($length) && intval($length) > 0) {
-          $s = fread($fp, intval($length));
+          // because large packets will be split over multiple packets what
+          // would be good is to instead load a packet and then process all
+          // of the packet it can. This would be a little more memory
+          // efficent than building the whole string and then processing it.
+          $length = intval($length);
+          $s = '';
+          while ($length - strlen($s) > 0) {
+            $s.= fread($fp, intval($length)-strlen($s));
+          }
+          
           if ($this->_debug_mode) {
             $debug['rx'] .= $s;
           }
@@ -310,7 +319,7 @@ array
                 $this->_properties[$match[1]]['data'] = urldecode($match[2]);
               }
             }
-          }
+          } 
         }
       }
       if (array_key_exists('HID_FIELDNAMES', $this->_properties)) {
