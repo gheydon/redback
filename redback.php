@@ -158,8 +158,8 @@ array
   private function _callmethod($method) {
     if (isset($this->_url_parts)) {
       switch($this->_comms_layer) {
-        case 'socket':
-          return $this->_socket_callmethod($method);
+        case 'cgi':
+          return $this->_cgi_callmethod($method);
         case 'rgw':
           return $this->_rgw_callmethod($method);
       }
@@ -210,7 +210,7 @@ array
     return $data;
   }
 
-  private function _socket_callmethod($method) {
+  private function _cgi_callmethod($method) {
     $debug = array('tx' => '', 'rx' => '');
     $data = $this->_build_data();
 
