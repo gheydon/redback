@@ -162,6 +162,9 @@ array
     if (count($this->_url_parts) == 2) {
       $this->_comms_layer = 'rgw';
     }
+    else {
+      $this->_comms_layer = 'cgi';
+    }
     if (strpos($object, VM) !== false) {
       $handle = explode(':', $object);
       $this->_properties['HID_FORM_INST']['data'] = $handle[0];
