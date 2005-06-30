@@ -156,6 +156,9 @@ array
   private function _open($url, $object) {
     $this->_object = $object;
     $this->_url_parts = parse_url($url);
+    if (count($this->_url_parts) == 1) {
+      $this->_readini($url);
+    }
     if (count($this->_url_parts) == 2) {
       $this->_comms_layer = 'rgw';
     }
@@ -167,6 +170,14 @@ array
     }
     $this->_callmethod($object);
     $this->RBOHandle = $this->_properties['HID_FORM_INST']['data'] .':' .$this->_properties['HID_USER']['data'];
+  }
+
+  private function _readini($url) {
+    if ($db = dba_popen('rgw.ini', 'r', 'inifile')) {
+      if ($s = dba_fetch("[Databases]$url", $db)) {
+        $this->_url_parts = parse_url($s);
+      }
+    }
   }
   
   private function _authorise($user, $name) {
