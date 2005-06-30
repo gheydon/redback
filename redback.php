@@ -37,7 +37,14 @@ class redback {
     $this->_open($url, $obj);
   }
   
+/*
+ * When the object is closed make sure that all updated properties have been
+ * sent to the RBO Server.
+ */
   public function close() {
+    if ($this->RBOHandle && $this->_tainted) {
+      $this->_callmethod(',.Refresh()');
+    }
   }
   
   public function callmethod($method) {
@@ -51,6 +58,7 @@ class redback {
         if ($override || $this->_check_property_access($k)) {
           $this->_properties[$k]['data'] = $v;
           $this->_properties[$k]['tainted'] = true;          
+          $this->_tainted = true;
         }
       }
     }
@@ -58,6 +66,7 @@ class redback {
       if ($override || $this->_check_property_access($property)) {
         $this->_properties[$property]['data'] = $value;
         $this->_properties[$property]['tainted'] = true;
+        $this->_tainted = true;
       }
       else {
         trigger_error(sprintf('Undefined property: %s::%s.', get_class($this), $property), E_USER_ERROR);
@@ -171,6 +180,7 @@ array
         case 'rgw':
           return $this->_rgw_callmethod($method);
       }
+      $this->_tainted = false;
     }
   }
   
@@ -276,7 +286,6 @@ array
       }
     }
     fclose($fp);
-    $this->_tainted = false;
     if ($this->_debug_mode) {
       $this->__Debug_Data[] = $debug;
     }
@@ -338,7 +347,6 @@ array
       }
     }
     fclose($fp);
-    $this->_tainted = false;
     if ($this->_debug_mode) {
       $this->__Debug_Data[] = $debug;
     }
