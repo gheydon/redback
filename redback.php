@@ -6,6 +6,7 @@ define("SV", chr(252));
 
 class redback {
   public $__Debug_Data = array();
+  public $RBOHandle = NULL;
   
   public function __set($property, $value) {
     if ($this->_check_property_access($property)) {
@@ -149,7 +150,14 @@ array
     if (count($this->_url_parts) == 2) {
       $this->_comms_layer = 'rgw';
     }
+    if (strpos($object, VM) !== false) {
+      $handle = explode(':', $object);
+      $this->_properties['HID_FORM_INST']['data'] = $handle[0];
+      $this->_properties['HID_USER']['data'] = $handle[1];
+      $object = ',.Refresh()';
+    }
     $this->_callmethod($object);
+    $this->RBOHandle = $this->_properties['HID_FORM_INST']['data'] .':' .$this->_properties['HID_USER']['data'];
   }
   
   private function _authorise($user, $name) {
