@@ -2,12 +2,17 @@
 require "redback.php";
 
 $rb = new redback;
+//$rb->__Set_Debug();
 
-$rb->open('http://192.168.211.2:80/cgi-bin/rgw/rbexamples', 'EXMOD:EmployeeList');
+$rb->open('rangi:8401', 'EXMOD:EmployeeList');
 $rs = $rb->Select();
 
-//var_dump($rb->__Debug_Data);
-var_dump($rs->getproperty());
+while (!$rs->eof()) {
+  var_dump($rs->getproperty());
+  flush();
+  $rs->movenext();
+}
 
+//var_dump($rb->__Debug_Data);
 
 ?>

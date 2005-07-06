@@ -388,7 +388,6 @@ class redset {
    * Public functions
    */ 
   public function __construct($rbo) {
-    echo "create rset";
     $this->_rbo = $rbo;
     $this->_fields = $rbo->getproperty('HID_FIELDNAMES', true);
     $this->_setup();
@@ -407,7 +406,7 @@ class redset {
     static $position, $arr;
     if ($position != $this->_position) {
       $arr = array();
-      $data = $this->_rbo->getproperty('HID_ROW_' .$this->_position, true);
+      $data = $this->_rbo->getproperty('HID_ROW_' .($this->_position-$this->_fromitem+1), true);
       foreach ($this->_fields as $k => $v) {
         $arr[$v] = $data[$k];
       }
@@ -447,11 +446,10 @@ class redset {
     if ($position > $this->_maxitems || $position < 1) {
       return false;
     }
-    echo $this->_position ."\n";
     // get the correct page
     if ($position < $this->_fromitem || $position > $this->_uptoitem) {
       $pageno = intval($position / $this->_pagesize) + 1;
-      $this->_rbo->set_property('HID_PAGENO', $pageno);
+      $this->_rbo->setproperty('HID_PAGENO', $pageno, true);
       $this->_rbo->callmethod('PageDisp');
       $this->_setup();
     }
