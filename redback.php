@@ -453,14 +453,19 @@ class redset {
     if ($position > $this->_maxitems || $position < 1) {
       return false;
     }
+    $ret = true;
     // get the correct page
     if ($position < $this->_fromitem || $position > $this->_uptoitem) {
       $pageno = intval($position / $this->_pagesize) + 1;
       $this->_rbo->setproperty('HID_PAGENO', $pageno, true);
-      $this->_rbo->callmethod('PageDisp');
+      if ($this->_rbo->callmethod('PageDisp') === false) {
+        $ret = false;
+      }
       $this->_setup();
     }
     $this->_position = $position;
+
+    return $ret;
   }
 
   private function _setup() {
