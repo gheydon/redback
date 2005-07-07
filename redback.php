@@ -7,6 +7,16 @@ define("SV", chr(252));
 class redback {
   public $__Debug_Data = array();
   public $RBOHandle = NULL;
+
+  public function __contruct($url = '', $obj = '', $user = NULL, $pass = NULL) {
+    if ($url && $method) {
+      $this->open($url, $method, $user, $pass);
+    }
+  }
+
+  public function __destruct() {
+    $this->close();
+  }
   
   public function __set($property, $value) {
     if ($this->_check_property_access($property)) {
