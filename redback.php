@@ -193,7 +193,7 @@ array
   }
 
   private function _readini($url) {
-    if ($db = dba_popen('rgw.ini', 'r', 'inifile')) {
+    if ($db = dba_popen('phprgw.ini', 'r', 'inifile')) {
       if ($s = dba_fetch("[Databases]$url", $db)) {
         $this->_url_parts = parse_url($s);
       }
