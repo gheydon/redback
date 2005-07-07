@@ -136,6 +136,13 @@ array
     return false;
   }
   
+/*
+* Return an array of all the errors that have been set.
+*/
+  public function __getError() {
+    return explode('\n', $this->getproperty('HID_ALERT', true));
+  }
+
   public function __Set_Debug($mode = NULL) {
     $this->_debug_mode = $this->_debug_mode ? false : true;
   }
@@ -357,7 +364,7 @@ array
         $ret = new redset($this);
       }
       else {
-        $ret = true;
+        $ret = array_key_exists('HID_ERROR', $this->_properties) ? false : true;
       }
     }
     fclose($fp);
