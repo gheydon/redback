@@ -400,7 +400,7 @@ array
   }
 }
 
-class redset {
+class redset implements Iterator {
   /*
    * Public functions
    */ 
@@ -417,6 +417,27 @@ class redset {
     else {
       trigger_error(sprintf('Undefined property: %s::%s.', get_class($this), $property), E_USER_ERROR);
     }
+  }
+
+  public function rewind() {
+    $this->_goto(1);
+  }
+
+  public function current() {
+    return $this->eof() ? false : $this->getproperty();
+  }
+
+  public function key() {
+    return $this->_position > $this->_maxitems ? false : $this->_position;
+  }
+
+  public function next() {
+    $this->movenext();
+    return $this->eof() ? false : $this->getproperty();
+  }
+
+  public function valid() {
+    return ($this->current() !== false);
   }
 
   public function getproperty($property = null) {
