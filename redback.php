@@ -341,7 +341,7 @@ array
       echo "$errstr ($errno)<br />\n";
     } else {
       $header = sprintf("PATH_INFO\xfeHTTP_USER_AGENT\xfeQUERY_STRING\xfeSPIDER_VERSION\xfeRGWHOST\xfeRGWADDR");
-      $data = sprintf("/rbo/%s\xferedback=1\xfe%s\xfe101\xfe%s\xfe%s", $method, $qs, $hostname, $ipaddr);
+      $data = sprintf("/rbo/%s\xferedback=1\xfe%s\xfe101\xfe\xfe", $method, $qs);
       $out = sprintf('%010d%s%010d%s', strlen($header), $header, strlen($data), $data);
       fwrite($fp, $out);
       /*
