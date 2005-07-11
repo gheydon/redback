@@ -340,8 +340,8 @@ array
     if (!$fp) {
       echo "$errstr ($errno)<br />\n";
     } else {
-      $header = sprintf("PATH_INFO\xfeHTTP_USER_AGENT\xfeQUERY_STRING\xfeSPIDER_VERSION\xfeRGWHOST\xfeRGWADDR");
-      $data = sprintf("/rbo/%s\xferedback=1\xfe%s\xfe101\xfe\xfe", $method, $qs);
+      $header = sprintf("PATH_INFO\xfeHTTP_USER_AGENT\xfeQUERY_STRING\xfeSPIDER_VERSION");
+      $data = sprintf("/rbo/%s\xferedback=1\xfe%s\xfe101", $method, $qs);
       $out = sprintf('%010d%s%010d%s', strlen($header), $header, strlen($data), $data);
       fwrite($fp, $out);
       /*
