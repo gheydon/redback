@@ -209,7 +209,7 @@ array
     $this->_open($url, "{$obj_parts[0]}:RPLOGIN");
     $this->setproperty('USERID', $user);
     $this->setproperty('PASSWORD', $pass);
-    if ($this->_callmethod(',this.ADOLogin')) {
+    if ($this->callmethod('ADOLogin')) {
       $props = array();
       $props['HID_FORM_INST'] = $this->_properties['HID_FORM_INST'];
       $props['HID_USER'] = $this->_properties['HID_USER'];
