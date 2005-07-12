@@ -42,9 +42,11 @@ class redback {
   
   public function open($url, $obj, $user = NULL, $pass = NULL) {
     if ($user) {
-      $this->_authorise($url, $obj, $user, $pass);
+      if (!$this->_authorise($url, $obj, $user, $pass)) {
+        return false;
+      }
     }
-    $this->_open($url, $obj);
+    return $this->_open($url, $obj);
   }
   
 /*
@@ -188,8 +190,9 @@ array
       $this->_properties['HID_USER']['data'] = $handle[1];
       $object = ',.Refresh()';
     }
-    $this->_callmethod($object);
+    $ret = $this->_callmethod($object);
     $this->RBOHandle = $this->_properties['HID_FORM_INST']['data'] .':' .$this->_properties['HID_USER']['data'];
+    return $ret;
   }
 
   private function _readini($url) {
@@ -205,12 +208,16 @@ array
     $this->_open($url, "{$obj_parts[0]}:RPLOGIN");
     $this->setproperty('USERID', $user);
     $this->setproperty('PASSWORD', $pass);
-    $this->_callmethod(',this.ADOLogin');
-
-    $props = array();
-    $props['HID_FORM_INST'] = $this->_properties['HID_FORM_INST'];
-    $props['HID_USER'] = $this->_properties['HID_USER'];
-    $this->_properties = $props;
+    if ($this->_callmethod(',this.ADOLogin')) {
+      $props = array();
+      $props['HID_FORM_INST'] = $this->_properties['HID_FORM_INST'];
+      $props['HID_USER'] = $this->_properties['HID_USER'];
+      $this->_properties = $props;
+      return true;
+    }
+    else {
+      return false;
+    }
   }
   
   private function _callmethod($method) {

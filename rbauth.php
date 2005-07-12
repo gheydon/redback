@@ -4,7 +4,9 @@ require 'redback.php';
 $rb = new redback;
 $rb->__Set_Debug();
 
-$rb->open('rangi:8401', 'EXMOD:Employee', 'rbadmin', 'xxx');
+if (!$rb->open('rangi:8401', 'EXMOD:Employee', 'rbadmin', 'redback')) {
+  echo implode("\n", $rb->__getError()) ."\n";
+}
 
 var_dump($rb->__Debug_Data);
 ?>
