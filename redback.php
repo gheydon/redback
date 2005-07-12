@@ -42,7 +42,7 @@ class redback {
   
   public function open($url, $obj, $user = NULL, $pass = NULL) {
     if ($user) {
-      $this->_authorise($url, $user, $pass);
+      $this->_authorise($url, $obj, $user, $pass);
     }
     $this->_open($url, $obj);
   }
@@ -200,11 +200,12 @@ array
     }
   }
   
-  private function _authorise($url, $user, $pass) {
-    $this->_open($url, 'RPLOGIN');
+  private function _authorise($url, $obj, $user, $pass) {
+    $obj_parts = explode(':', $obj);
+    $this->_open($url, "{$obj_parts[0]}:RPLOGIN");
     $this->setproperty('USERID', $user);
     $this->setproperty('PASSWORD', $pass);
-    $this->_callmethod('ADOLogin');
+    $this->_callmethod(',this.ADOLogin');
 
     $props = array();
     $props['HID_FORM_INST'] = $this->_properties['HID_FORM_INST'];
