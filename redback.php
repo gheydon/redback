@@ -167,6 +167,7 @@ array
   private $_properties = NULL;
   private $_tainted = false;
   private $_debug_mode = false;
+  private $_monitor = false;
  
 /*
  * Private Functions
@@ -272,6 +273,9 @@ array
     }
     else {
       $data = 'redbeans=1';
+    }
+    if ($this->_monitor) {
+      $data.= "&MONITOR=1";
     }
     return $data;
   }
