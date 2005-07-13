@@ -155,8 +155,12 @@ array
     return explode('\n', $this->getproperty('HID_ALERT', true));
   }
 
-  public function __Set_Debug($mode = NULL) {
-    $this->_debug_mode = $this->_debug_mode ? false : true;
+  public function __setMonitor($mode = NULL) {
+    $this->_monitor = $mode !== NULL ? $this->_monitor = $mode : ($this->_monitor ? false : true);
+  }
+
+  public function __setDebug($mode = NULL) {
+    $this->_debug_mode = $mode !== NULL ? $this->_debug_mode = $mode : ($this->_debug_mode ? false : true);
   }
 /*
  * Private varibles

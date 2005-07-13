@@ -2,7 +2,7 @@
 require "redback.php";
 
 $rb = new redback;
-//$rb->__Set_Debug();
+//$rb->__setDebug();
 
 $rb->open('rangi:8401', 'EXMOD:EmployeeList');
 $rs = $rb->Select();
