@@ -184,6 +184,24 @@ array
   public function __setDebug($mode = NULL) {
     $this->_debug_mode = $mode !== NULL ? $this->_debug_mode = $mode : ($this->_debug_mode ? false : true);
   }
+
+  public function __getStats() {
+    if (!is_array($this->__Monitor_Data)) {
+      $stats = array();
+      foreach (explode("\n", $this->__Monitor_Data) as $s) {
+        var_dump($s);
+        if (preg_match('/\[(.*)\]/', $s, $match)) {
+          $group = $match[1];
+        }
+        elseif ($group && preg_match('/^(.*)=(.*)$/', $s, $match)) {
+          $stats[$group][$match[1]] = $match[2];
+        }
+      }
+      $this->__Monitor_Data = $stats;
+    }
+    return $this->__Monitor_Data;
+  }
+  
 /*
  * Private varibles
  */
