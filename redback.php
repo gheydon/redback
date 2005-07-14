@@ -27,6 +27,7 @@ define("SV", chr(252));
 
 class redback {
   public $__Debug_Data = array();
+  public $__Monitor_Data = NULL;
   public $RBOHandle = NULL;
 
   public function __contruct($url = '', $obj = '', $user = NULL, $pass = NULL) {
@@ -406,10 +407,19 @@ array
           while ($length - strlen($s) > 0) {
             $s.= fread($fp, intval($length)-strlen($s));
           }
-          
+
           if ($this->_debug_mode) {
             $debug['rx'] .= $s;
           }
+
+          // strip monitor data from stream
+          if ($this->_monitor && preg_match("/(\[BackEnd\]..*)$/s", $s, $match)) {
+            // need to work work out how I am going to use this monitoring
+            // data
+            $this->__Monitor_Data = preg_replace("/\x0d/", "\n", $match[1]);
+            $s = preg_replace("/\[BackEnd\].*$/s", '', $s);
+          }
+          
           if (preg_match('/^N/', $s)) { // Only look at N type records
             $s = substr($s, 1);
             foreach (explode("\n", $s) as $v) {
