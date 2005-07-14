@@ -27,7 +27,6 @@ define("SV", chr(252));
 
 class redback {
   public $__Debug_Data = array();
-  public $__Monitor_Data = NULL;
   public $RBOHandle = NULL;
 
   public function __contruct($url = '', $obj = '', $user = NULL, $pass = NULL) {
@@ -186,9 +185,9 @@ array
   }
 
   public function __getStats() {
-    if (!is_array($this->__Monitor_Data)) {
+    if (!is_array($this->_monitor_data)) {
       $stats = array();
-      foreach (explode("\n", $this->__Monitor_Data) as $s) {
+      foreach (explode("\n", $this->_monitor_data) as $s) {
         var_dump($s);
         if (preg_match('/\[(.*)\]/', $s, $match)) {
           $group = $match[1];
@@ -197,9 +196,9 @@ array
           $stats[$group][$match[1]] = $match[2];
         }
       }
-      $this->__Monitor_Data = $stats;
+      $this->_monitor_data = $stats;
     }
-    return $this->__Monitor_Data;
+    return $this->_monitor_data;
   }
   
 /*
@@ -212,6 +211,7 @@ array
   private $_tainted = false;
   private $_debug_mode = false;
   private $_monitor = false;
+  private $_monitor_data = NULL;
  
 /*
  * Private Functions
@@ -434,7 +434,7 @@ array
           if ($this->_monitor && preg_match("/(\[BackEnd\]..*)$/s", $s, $match)) {
             // need to work work out how I am going to use this monitoring
             // data
-            $this->__Monitor_Data = preg_replace("/\x0d/", "\n", $match[1]);
+            $this->_monitor_data = preg_replace("/\x0d/", "\n", $match[1]);
             $s = preg_replace("/\[BackEnd\].*$/s", '', $s);
           }
           
