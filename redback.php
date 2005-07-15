@@ -444,11 +444,11 @@ array
           
           if (preg_match('/^N/', $s)) { // Only look at N type records
             $s = substr($s, 1);
-            foreach (explode("\n", $s) as $v) {
-              if (preg_match('/^(.*)=(.*)/', $v, $match)) {
-                $this->_properties[$match[1]]['data'] = urldecode($match[2]);
+            if (preg_match_all('/^(.*?)=(.*?)$/m', $s, $match)) {
+              foreach ($match[1] as $k => $v) {
+                $this->_properties[$match[1][$k]]['data'] = urldecode($match[2][$k]);
               }
-            }
+            } 
           } 
         }
       }
