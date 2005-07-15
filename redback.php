@@ -228,7 +228,7 @@ array
     else {
       $this->_comms_layer = 'cgi';
     }
-    if (strpos($object, VM) !== false) {
+    if (preg_match("/\xfd/", $object)) {
       $handle = explode(':', $object);
       $this->_properties['HID_FORM_INST']['data'] = $handle[0];
       $this->_properties['HID_USER']['data'] = $handle[1];
