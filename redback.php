@@ -188,7 +188,6 @@ array
     if (!is_array($this->_monitor_data)) {
       $stats = array();
       foreach (explode("\n", $this->_monitor_data) as $s) {
-        var_dump($s);
         if (preg_match('/\[(.*)\]/', $s, $match)) {
           $group = $match[1];
         }
@@ -351,6 +350,13 @@ array
       if ($this->_debug_mode) {
         $debug['tx'] = $out;
       }
+
+      // strip monitor data from stream
+      if ($this->_monitor && preg_match("/(\[BackEnd\]..*)$/s", $s, $match)) {
+        $this->_monitor_data = preg_replace("/\x0d/", "\n", $match[1]);
+        $s = preg_replace("/\[BackEnd\].*$/s", '', $s);
+      }
+
       if (!feof($fp)) {
         $s = fgets($fp);
         if ($this->_debug_mode) {
@@ -432,8 +438,6 @@ array
 
           // strip monitor data from stream
           if ($this->_monitor && preg_match("/(\[BackEnd\]..*)$/s", $s, $match)) {
-            // need to work work out how I am going to use this monitoring
-            // data
             $this->_monitor_data = preg_replace("/\x0d/", "\n", $match[1]);
             $s = preg_replace("/\[BackEnd\].*$/s", '', $s);
           }
