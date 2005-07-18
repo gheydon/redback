@@ -3,8 +3,8 @@
 
   $rb = new redback;
   $rb2 = new redback;
-  $rb->__Set_Debug();
-  $rb2->__Set_Debug();
+  $rb->__setDebug();
+  $rb2->__setDebug();
   $rb->open('rangi:8401', 'EXMOD:Employee');
   $rb->EmpId = '1001';
   $rb->ReadData();
