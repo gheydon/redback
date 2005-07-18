@@ -395,14 +395,10 @@ array
   }
 
   private function _rgw_callmethod($method) {
-    static $fp;
-
     $debug = array('tx' => '', 'rx' => '');
     $qs = $this->_build_data();
 
-    if (!$fp) {
-      $fp = pfsockopen($this->_url_parts['host'], $this->_url_parts['port'], $errno, $errstr, 30);
-    }
+    $fp = pfsockopen($this->_url_parts['host'], $this->_url_parts['port'], $errno, $errstr, 30);
     if (!$fp) {
       echo "$errstr ($errno)<br />\n";
     } else {
@@ -459,6 +455,7 @@ array
         $ret = array_key_exists('HID_ERROR', $this->_properties) ? false : true;
       }
     }
+    fclose($fp);
     if ($this->_debug_mode) {
       $this->__Debug_Data[] = $debug;
     }
