@@ -139,7 +139,7 @@ array
 
 */  
   public function getproperty($property, $override = false) {
-    if (array_key_exists($property, $this->properties) && $override || $this->_check_property_access($property)) {
+    if (array_key_exists($property, $this->_properties) && $override || $this->_check_property_access($property)) {
       if (!strstr($this->_properties[$property]['data'], AM) && 
           !strstr($this->_properties[$property]['data'], VM) && 
           !strstr($this->_properties[$property]['data'], SV)) {
