@@ -25,6 +25,14 @@ define("AM", chr(254));
 define("VM", chr(253));
 define("SV", chr(252));
 
+define('RETURN_AM', 1);
+define('RETURN_VM', 2);
+define('RETURN_SM', 4);
+define('RETURN_SV_AS_AM', 8);
+define('RETURN_SV_AS_VM', 16);
+define('RETURN_SV_AS_SM', 32);
+define('RETURN_SV_AS_SV', 64);
+
 class redback {
   public $__Debug_Data = array();
   public $RBOHandle = NULL;
@@ -89,7 +97,7 @@ class redback {
       // process array of values to set
       foreach ($property as $k => $v) {
         if ($override || $this->_check_property_access($k)) {
-          $this->_properties[$k]['data'] = $v;
+          $this->_properties[$k]['data'] = $this->_buildmv($v);
           $this->_properties[$k]['tainted'] = true;          
           $this->_tainted = true;
         }
@@ -97,7 +105,7 @@ class redback {
     }
     else {
       if ($override || $this->_check_property_access($property)) {
-        $this->_properties[$property]['data'] = $value;
+        $this->_properties[$property]['data'] = $this->_buildmv($value);
         $this->_properties[$property]['tainted'] = true;
         $this->_tainted = true;
       }
@@ -143,7 +151,18 @@ array
       if (!strstr($this->_properties[$property]['data'], AM) && 
           !strstr($this->_properties[$property]['data'], VM) && 
           !strstr($this->_properties[$property]['data'], SV)) {
-        return $this->_properties[$property]['data'];
+        if ($this->_return_mode & RETURN_SV_AS_AM) {
+          $data = array($this->_properties[$property]['data']);
+        }
+        elseif ($this->_return_mode & RETURN_SV_AS_VM) {
+          $data = array(array($this->_properties[$property]['data']));
+        }
+        elseif ($this->_return_mode & RETURN_SV_AS_SM) {
+          $data = array(array(array($this->_properties[$property]['data'])));
+        }
+        else {
+          return $this->_properties[$property]['data'];
+        }
       }
       else {
         $data = explode(AM, $this->_properties[$property]['data']);
@@ -163,7 +182,15 @@ array
             }
           }
         }
-        return $data;
+      }
+      if ($this->_return_mode & RETURN_AM) {
+        return is_array($data) ? $data : false;
+      }
+      elseif ($this->_return_mode & RETURN_VM) {
+        return is_array($data) ? $data[0] : false;
+      }
+      elseif ($this->_return_mode & RETURN_SM) {
+        return is_array($data) && is_array($data[0]) ? $data[0][0] : false;
       }
     }
     return false;
@@ -178,6 +205,10 @@ array
 
   public function __setMonitor($mode = NULL) {
     $this->_monitor = $mode !== NULL ? $this->_monitor = $mode : ($this->_monitor ? false : true);
+  }
+
+  public function __setReturn($mode = NULL) {
+    $this->_return_mode = $mode ? $mode : (RETURN_VM | RETURN_SV_AS_VM);
   }
 
   public function __setDebug($mode = NULL) {
@@ -211,6 +242,7 @@ array
   private $_debug_mode = false;
   private $_monitor = false;
   private $_monitor_data = NULL;
+  private $_return_mode = 18;
  
 /*
  * Private Functions
@@ -302,7 +334,7 @@ array
     if ($this->_properties) {
       foreach ($this->_properties as $k => $v) {
         if (isset($v['tainted']) && $v['tainted'] || $k == 'HID_FORM_INST' || $k == 'HID_USER') {
-          $data[] = "$k=" .$this->_buildmv($v['data']);
+          $data[] = "$k=" .urlencode($v['data']);
           unset($this->_properties[$k]['tainted']);
         }
         if (preg_match('/HID_ROW_\d+/', $k)) {
@@ -464,13 +496,22 @@ array
  
   private function _buildmv($v) {
     if (is_array($v)) {
+      if ($this->_return_mode & RETURN_VM) {
+        $top = 253;
+      }
+      elseif ($this->_return_mode & RETURN_SM) {
+        $top = 252;
+      }
+      else {
+        $top = 254;
+      }
       foreach ($v as $am => $x) {
         if (is_array($x)) {
-          $x = implode(SV, $x);
+          $x = implode(chr($top-2), $x);
         }
-        $v[$am] = implode(VM, $x);
+        $v[$am] = implode(chr($top-1), $x);
       }
-      return implode(AM, $v);
+      return implode(chr($top), $v);
     }
     else {
       return $v;
