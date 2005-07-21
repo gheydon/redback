@@ -506,10 +506,7 @@ array
         $top = 254;
       }
       foreach ($v as $am => $x) {
-        if (is_array($x)) {
-          $x = implode(chr($top-2), $x);
-        }
-        $v[$am] = implode(chr($top-1), $x);
+        $v[$am] = is_array($x) ? implode(chr($top-2), $x) : $x;
       }
       return implode(chr($top), $v);
     }
