@@ -494,6 +494,19 @@ array
     return $ret;
   }
  
+  /*
+   * this function turns a PHP array back into a multivalued field.
+   *
+   * TODO: I need to pad out the missing values in the array so that they
+   * return correctly, eg.
+   *
+   * array(1 => 'mv 2', 5 => 'mv 6')
+   *
+   * should return mv 2]]]]]mv 6 but instead will return mv 2]mv 6
+   *
+   * TODO: I also think this could be a little tidier and faster by using
+   * array_walk_recusive() instead.
+   */
   private function _buildmv($v) {
     if (is_array($v)) {
       if ($this->_return_mode & RETURN_VM) {
