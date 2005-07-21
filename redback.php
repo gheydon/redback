@@ -523,14 +523,18 @@ array
         $v[$am] = is_array($x) ? implode(chr($top-2), $x) : $x;
         if (is_array($x)) {
            ksort($x);
-           $x = array_union_key(array_fill(0, max(array_keys($x)), ''), $x);
+           if (($max = max(array_keys($x))) > 0) {
+             $x = array_union_key(array_fill(0, $max, ''), $x);
+           }
            $v[$am] = implode(chr($top-2), $x);
         }
         else {
            $v[$am] = $x;
         }
       }
-      $v = array_union_key(array_fill(0, max(array_keys($v)), ''), $v);
+      if (($max = max(array_keys($v))) > 0) {
+        $v = array_union_key(array_fill(0, $max, ''), $v);
+      }
       return implode(chr($top), $v);
     }
     else {
