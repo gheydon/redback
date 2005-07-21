@@ -216,17 +216,20 @@ array
   }
 
   public function __getStats() {
-    if (!is_array($this->_monitor_data)) {
-      $stats = array();
-      foreach (explode("\n", $this->_monitor_data) as $s) {
-        if (preg_match('/\[(.*)\]/', $s, $match)) {
-          $group = $match[1];
+    foreach ($this->_monitor_data as $k => $v) {
+      if (isset($v['data'])) {
+        $stats = array();
+        foreach (explode("\n", $v['data']) as $s) {
+          if (preg_match('/\[(.*)\]/', $s, $match)) {
+            $group = $match[1];
+          }
+          elseif ($group && preg_match('/^(.*)=(.*)$/', $s, $match)) {
+            $stats[$group][$match[1]] = $match[2];
+          }
         }
-        elseif ($group && preg_match('/^(.*)=(.*)$/', $s, $match)) {
-          $stats[$group][$match[1]] = $match[2];
-        }
+        unset($this->_monitor_data[$k]['data']);
+        $this->_monitor_data[$k] = array_merge($this->_monitor_data[$k],$stats);
       }
-      $this->_monitor_data = $stats;
     }
     return $this->_monitor_data;
   }
@@ -385,7 +388,7 @@ array
 
       // strip monitor data from stream
       if ($this->_monitor && preg_match("/(\[BackEnd\]..*)$/s", $s, $match)) {
-        $this->_monitor_data = preg_replace("/\x0d/", "\n", $match[1]);
+        $this->_monitor_data[] = array('method' => $method,'data' => preg_replace("/\x0d/", "\n", $match[1]));
         $s = preg_replace("/\[BackEnd\].*$/s", '', $s);
       }
 
@@ -466,7 +469,7 @@ array
 
           // strip monitor data from stream
           if ($this->_monitor && preg_match("/(\[BackEnd\]..*)$/s", $s, $match)) {
-            $this->_monitor_data = preg_replace("/\x0d/", "\n", $match[1]);
+            $this->_monitor_data[] = array('method' => $method, 'data' => preg_replace("/\x0d/", "\n", $match[1]));
             $s = preg_replace("/\[BackEnd\].*$/s", '', $s);
           }
           
