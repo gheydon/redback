@@ -497,15 +497,12 @@ array
   /*
    * this function turns a PHP array back into a multivalued field.
    *
-   * TODO: I need to pad out the missing values in the array so that they
-   * return correctly, eg.
-   *
-   * array(1 => 'mv 2', 5 => 'mv 6')
-   *
-   * should return mv 2]]]]]mv 6 but instead will return mv 2]mv 6
-   *
    * TODO: I also think this could be a little tidier and faster by using
    * array_walk_recusive() instead.
+   *
+   * WARNING: This function is relying on the fact that all of the keys in
+   * the array are numeric. If there is a alpha key then the max() will
+   * return a alpha for the array_fill().
    */
   private function _buildmv($v) {
     if (is_array($v)) {
@@ -521,7 +518,16 @@ array
       }
       foreach ($v as $am => $x) {
         $v[$am] = is_array($x) ? implode(chr($top-2), $x) : $x;
+        if (is_array($x)) {
+           ksort($x);
+           $x = array_union_key(array_fill(0, max(array_keys($x)), ''), $x);
+           $v[$am] = implode(chr($top-2), $x);
+        }
+        else {
+           $v[$am] = $x;
+        }
       }
+      $v = array_union_key(array_fill(0, max(array_keys($v)), ''), $v);
       return implode(chr($top), $v);
     }
     else {
