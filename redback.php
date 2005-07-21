@@ -509,6 +509,7 @@ array
    */
   private function _buildmv($v) {
     if (is_array($v)) {
+      ksort($v);
       if ($this->_return_mode & RETURN_VM) {
         $top = 253;
       }
