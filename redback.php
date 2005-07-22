@@ -651,4 +651,35 @@ class redset implements Iterator {
   }
 }
 
+/*
+ * creates a union of all the keys in an array
+ *
+ * the resulting array is the combination of all the keys with the 2 arrays.
+ * Any duplicate keys will have the contents of the array from the later
+ * arrays. Because of the limitation of overloading in php you cannot do
+ * this. eg
+ * 
+ * $rb->property[3] = 'blah'
+ * 
+ * So instead you need to use this function and do the following. eg
+ * 
+ * $rb->property = array_union_key($rb->property, array(3 => 'blah') 
+ *
+ * This is not as sexy as in PICK but I think that is it acceptable.
+ */
+function array_union_key() {
+  if (func_num_args() < 2) {
+      trigger_error(sprintf('Warning: Wrong parameter count for array_union_key()', get_class($this), $property), E_USER_WARNING);
+      return false;
+  }
+  $a1 = func_get_arg(0);
+  for ($i = 1; $i < func_num_args() ; $i++) {
+    $a2 = func_get_arg($i);
+    foreach ($a2 as $k => $v) {
+      $a1[$k] = $v;
+    }
+  }
+  return $a1;
+}
+
 ?>
