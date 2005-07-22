@@ -252,7 +252,6 @@ array
  */
   
   private function _open($url, $object) {
-    $this->_object = $object;
     $this->_url_parts = parse_url($url);
     if (count($this->_url_parts) == 1) {
       $this->_readini($url);
@@ -271,6 +270,7 @@ array
     }
     $ret = $this->_callmethod($object);
     $this->RBOHandle = $this->_properties['HID_FORM_INST']['data'] .':' .$this->_properties['HID_USER']['data'];
+    $this->_object = $this->_properties['HID_HANDLE']['data'];
     return $ret;
   }
 
