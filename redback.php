@@ -682,4 +682,19 @@ function array_union_key() {
   return $a1;
 }
 
+function build_assoc_array($rb, $fields) {
+  $arr = array(); $flds = array();
+  foreach ($fields as $f) {
+    $flds[$f] = '';
+  }
+  foreach ($fields as $f) {
+    foreach ($rb->getproperty($f) as $k => $v) {
+      if (!array_key_exists($k, $arr)) {
+        $arr[$k] = $flds;
+      }
+      $arr[$k][$f] = $v;
+    }
+  }
+  return $arr;
+}
 ?>
