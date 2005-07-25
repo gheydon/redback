@@ -146,18 +146,19 @@ array
       0 => 'Atribute 2'
 
 */  
-  public function getproperty($property, $override = false) {
+  public function getproperty($property, $override = false, $return = null) {
+    $return = ($return ? $return : $this->_return_mode);
     if (array_key_exists($property, $this->_properties) && $override || $this->_check_property_access($property)) {
       if (!strstr($this->_properties[$property]['data'], AM) && 
           !strstr($this->_properties[$property]['data'], VM) && 
           !strstr($this->_properties[$property]['data'], SV)) {
-        if ($this->_return_mode & RETURN_SV_AS_AM) {
+        if ($return & RETURN_SV_AS_AM) {
           $data = array($this->_properties[$property]['data']);
         }
-        elseif ($this->_return_mode & RETURN_SV_AS_VM) {
+        elseif ($return & RETURN_SV_AS_VM) {
           $data = array(array($this->_properties[$property]['data']));
         }
-        elseif ($this->_return_mode & RETURN_SV_AS_SM) {
+        elseif ($return & RETURN_SV_AS_SM) {
           $data = array(array(array($this->_properties[$property]['data'])));
         }
         else {
@@ -183,13 +184,13 @@ array
           }
         }
       }
-      if ($this->_return_mode & RETURN_AM) {
+      if ($return & RETURN_AM) {
         return is_array($data) ? $data : false;
       }
-      elseif ($this->_return_mode & RETURN_VM) {
+      elseif ($return & RETURN_VM) {
         return is_array($data) ? $data[0] : false;
       }
-      elseif ($this->_return_mode & RETURN_SM) {
+      elseif ($return & RETURN_SM) {
         return is_array($data) && is_array($data[0]) ? $data[0][0] : false;
       }
     }
@@ -200,7 +201,7 @@ array
 * Return an array of all the errors that have been set.
 */
   public function __getError() {
-    return explode('\n', $this->getproperty('HID_ALERT', true));
+    return explode('\n', $this->getproperty('HID_ALERT', true, RETURN_SV_AS_SV));
   }
 
   public function __setMonitor($mode = NULL) {
@@ -549,7 +550,7 @@ class redset implements Iterator {
    */ 
   public function __construct($rbo) {
     $this->_rbo = $rbo;
-    $this->_fields = $rbo->getproperty('HID_FIELDNAMES', true);
+    $this->_fields = $rbo->getproperty('HID_FIELDNAMES', true, RETURN_AM);
     $this->_setup();
   }
 
@@ -587,7 +588,7 @@ class redset implements Iterator {
     static $position, $arr;
     if ($position != $this->_position) {
       $arr = array();
-      $data = $this->_rbo->getproperty('HID_ROW_' .($this->_position-$this->_fromitem+1), true);
+      $data = $this->_rbo->getproperty('HID_ROW_' .(($this->_position-$this->_fromitem)+1), true, RETURN_AM);
       foreach ($this->_fields as $k => $v) {
         $arr[$v] = $data[$k];
       }
@@ -643,11 +644,11 @@ class redset implements Iterator {
   }
 
   private function _setup() {
-    $this->_pageno = $this->_rbo->getproperty('HID_PAGENO', true);
-    $this->_maxitems = $this->_rbo->getproperty('HID_MAX_ITEMS', true);
-    $this->_position = $this->_fromitem = $this->_rbo->getproperty('HID_FROM_ITEM', true);
-    $this->_uptoitem = $this->_rbo->getproperty('HID_UPTO_ITEM', true);
-    $this->_pagesize = $this->_rbo->getproperty('HID_PAGE_SIZE', true);
+    $this->_pageno = $this->_rbo->getproperty('HID_PAGENO', true, RETURN_SV_AS_SV);
+    $this->_maxitems = $this->_rbo->getproperty('HID_MAX_ITEMS', true, RETURN_SV_AS_SV);
+    $this->_position = $this->_fromitem = $this->_rbo->getproperty('HID_FROM_ITEM', true, RETURN_SV_AS_SV);
+    $this->_uptoitem = $this->_rbo->getproperty('HID_UPTO_ITEM', true, RETURN_SV_AS_SV);
+    $this->_pagesize = $this->_rbo->getproperty('HID_PAGE_SIZE', true, RETURN_SV_AS_SV);
   }
 }
 
