@@ -486,6 +486,14 @@ array
       }
       if (array_key_exists('HID_FIELDNAMES', $this->_properties)) {
         $ret = new redset($this);
+        /*
+         * In the ASP and IBM version on the Redback Gateway the MaxRows is
+         * actually a virtual field that is created when a recordset is
+         * returned. This behaviour is going to be duplicated.
+         */
+        if (array_key_exists('HID_MAX_ITEMS', $this->_properties)) {
+          $this->_properties['MaxRows'] = $this->_properties['HID_MAX_ITEMS'];
+        }
       }
       else {
         $ret = array_key_exists('HID_ERROR', $this->_properties) ? false : true;
