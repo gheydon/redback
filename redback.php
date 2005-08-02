@@ -27,16 +27,54 @@
 
 // {{{ constants
 
+/*
+ * standard PICK defines to make it easier to convert multi-valued data to
+ * something that can be used by PHP
+ */
 define("AM", chr(254));
 define("VM", chr(253));
 define("SV", chr(252));
 
+/*
+ * return multi-valued data in an attribute mark format.
+ */
+
 define('RETURN_AM', 1);
+
+/*
+ * return multi-valued data in an value mark format. eg 
+ */
+
 define('RETURN_VM', 2);
+
+/*
+ * return multi-valued data in an sub-value mark format. eg 
+ */
+
 define('RETURN_SM', 4);
+
+/*
+ * return single valued fields in attrribute format
+ */
+
 define('RETURN_SV_AS_AM', 8);
+
+/*
+ * return single valued fields in value mark format
+ */
+
 define('RETURN_SV_AS_VM', 16);
+
+/*
+ * return single valued fields in sub-value mark format
+ */
+
 define('RETURN_SV_AS_SM', 32);
+
+/*
+ * return single valued fields as string format
+ */
+
 define('RETURN_SV_AS_SV', 64);
 
 // }}}
@@ -47,13 +85,24 @@ class redback
 
     // {{{ public properties
     
+    /*
+     * When object has been put into debug mode the communication between
+     * the gateway and the RedBack Object Server will be recorded here.
+     */
     public $__Debug_Data = array();
+
+    /*
+     * This is a handle that can be saved in a session/cookie/form/query
+     * string and used during consecutive page requests to open the same
+     * object again.
+     */
     public $RBOHandle = NULL;
     
     // }}}
     // {{{ __contruct()
 
-    public function __contruct($url = '', $obj = '', $user = NULL, $pass = NULL) {
+    public function __contruct($url = '', $obj = '', $user = NULL, $pass = NULL)
+    {
         if ($url && $method) {
             $this->open($url, $method, $user, $pass);
         }
@@ -62,14 +111,16 @@ class redback
     // }}}
     // {{{ __destruct()
 
-    public function __destruct() {
+    public function __destruct() 
+    {
         $this->close();
     }
     
     // }}}
     // {{{ __set()
     
-    public function __set($property, $value) {
+    public function __set($property, $value) 
+    {
         if ($this->_check_property_access($property)) {
             $this->setproperty($property, $value);
         }
@@ -81,7 +132,8 @@ class redback
     // }}}
     // {{{ __get()
     
-    public function __get($property) {
+    public function __get($property) 
+    {
         if ($this->_check_property_access($property)) {
             return $this->getproperty($property);
         }
@@ -93,14 +145,16 @@ class redback
     // }}}
     // {{{ __call()
     
-    public function __call($method, $args) {
+    public function __call($method, $args) 
+    {
         return $this->callmethod($method);
     }
     
     // }}}
     // {{{ open()
     
-    public function open($url, $obj, $user = NULL, $pass = NULL) {
+    public function open($url, $obj, $user = NULL, $pass = NULL) 
+    {
         if ($user) {
             if (!$this->_authorise($url, $obj, $user, $pass)) {
                 return false;
@@ -116,7 +170,8 @@ class redback
      * When the object is closed make sure that all updated properties have 
      * been sent to the RBO Server.
      */
-    public function close() {
+    public function close() 
+    {
         if ($this->RBOHandle && $this->_tainted) {
             $this->_callmethod(',.Refresh()');
         }
@@ -125,14 +180,16 @@ class redback
     // }}}
     // {{{ callmethod()
     
-    public function callmethod($method) {
+    public function callmethod($method) 
+    {
         return $this->_callmethod("$this->_object,this.$method");
     }
     
     // }}}
     // {{{ setproperty()
     
-    public function setproperty($property, $value = array(), $override = false) {
+    public function setproperty($property, $value = array(), $override = false) 
+    {
         if (is_array($property)) {
             // process array of values to set
             foreach ($property as $k => $v) {
@@ -192,7 +249,8 @@ class redback
      *
      */
      
-    public function getproperty($property, $override = false, $return = null) {
+    public function getproperty($property, $override = false, $return = null) 
+    {
         $return = ($return ? $return : $this->_return_mode);
         if (array_key_exists($property, $this->_properties) && $override || $this->_check_property_access($property)) {
             if (!strstr($this->_properties[$property]['data'], AM) && 
@@ -249,35 +307,40 @@ class redback
     /*
      * Return an array of all the errors that have been set.
      */
-    public function __getError() {
+    public function __getError() 
+    {
         return explode('\n', $this->getproperty('HID_ALERT', true, RETURN_SV_AS_SV));
     }
 
     // }}}
     // {{{ __setMonitor()
 
-    public function __setMonitor($mode = NULL) {
+    public function __setMonitor($mode = NULL) 
+    {
         $this->_monitor = $mode !== NULL ? $this->_monitor = $mode : ($this->_monitor ? false : true);
     }
 
     // }}}
     // {{{ __setReturn()
 
-    public function __setReturn($mode = NULL) {
+    public function __setReturn($mode = NULL) 
+    {
         $this->_return_mode = $mode ? $mode : (RETURN_VM | RETURN_SV_AS_VM);
     }
 
     // }}}
     // {{{ __setDebug()
 
-    public function __setDebug($mode = NULL) {
+    public function __setDebug($mode = NULL) 
+    {
         $this->_debug_mode = $mode !== NULL ? $this->_debug_mode = $mode : ($this->_debug_mode ? false : true);
     }
 
     // }}}
     // {{{ __getStats()
 
-    public function __getStats() {
+    public function __getStats() 
+    {
         foreach ($this->_monitor_data as $k => $v) {
             if (isset($v['data'])) {
                 $stats = array();
@@ -320,7 +383,8 @@ class redback
     
     // {{{ _open()
     
-    private function _open($url, $object) {
+    private function _open($url, $object) 
+    {
         $this->_url_parts = parse_url($url);
         if (count($this->_url_parts) == 1) {
             $this->_readini($url);
@@ -346,7 +410,8 @@ class redback
     // }}}
     // {{{ _readini()
 
-    private function _readini($url) {
+    private function _readini($url) 
+    {
         if ($db = dba_popen('phprgw.ini', 'r', 'inifile')) {
             if ($s = dba_fetch("[Databases]$url", $db)) {
                 $this->_url_parts = parse_url($s);
@@ -357,7 +422,8 @@ class redback
     // }}}
     // {{{ _authorise()
     
-    private function _authorise($url, $obj, $user, $pass) {
+    private function _authorise($url, $obj, $user, $pass) 
+    {
         $obj_parts = explode(':', $obj);
         $this->_open($url, "{$obj_parts[0]}:RPLOGIN");
         $this->setproperty('USERID', $user);
@@ -377,7 +443,8 @@ class redback
     // }}}
     // {{{ _callmethod()
     
-    private function _callmethod($method) {
+    private function _callmethod($method) 
+    {
         if (isset($this->_url_parts)) {
             switch($this->_comms_layer) {
                 case 'cgi':
@@ -392,7 +459,8 @@ class redback
     // }}}
     // {{{ _check_property_access()
     
-    private function _check_property_access($property) {
+    private function _check_property_access($property) 
+    {
         if (array_key_exists($property, $this->_properties)) {
             if ($this->_debug_mode) {
                 return true;
@@ -414,7 +482,8 @@ class redback
     // }}}
     // {{{ _build_data()
     
-    private function _build_data() {
+    private function _build_data() 
+    {
         // create post data 
         if ($this->_properties) {
             foreach ($this->_properties as $k => $v) {
@@ -453,7 +522,8 @@ class redback
      * the array are numeric. If there is a alpha key then the max() will
      * return a alpha for the array_fill().
      */
-    private function _buildmv($v) {
+    private function _buildmv($v) 
+    {
         if (is_array($v)) {
             ksort($v);
             if ($this->_return_mode & RETURN_VM) {
@@ -494,7 +564,8 @@ class redback
      */
     // {{{ _cgi_callmethod()
 
-    private function _cgi_callmethod($method) {
+    private function _cgi_callmethod($method) 
+    {
         $debug = array('tx' => '', 'rx' => '');
         $data = $this->_build_data();
 
@@ -568,7 +639,8 @@ class redback
     // }}}
     // {{{ _rgw_callmethod()
 
-    private function _rgw_callmethod($method) {
+    private function _rgw_callmethod($method) 
+    {
         $debug = array('tx' => '', 'rx' => '');
         $qs = $this->_build_data();
 
@@ -777,7 +849,8 @@ class redset implements Iterator {
  *
  * This is not as sexy as in PICK but I think that is it acceptable.
  */
-function array_union_key() {
+function array_union_key() 
+{
     if (func_num_args() < 2) {
             trigger_error(sprintf('Warning: Wrong parameter count for array_union_key()', get_class($this), $property), E_USER_WARNING);
             return false;
@@ -795,7 +868,8 @@ function array_union_key() {
 // }}}
 // {{{ build_assoc_array()
 
-function build_assoc_array($rb, $fields) {
+function build_assoc_array($rb, $fields) 
+{
     $arr = array(); $flds = array();
     foreach ($fields as $f) {
         $flds[$f] = '';
