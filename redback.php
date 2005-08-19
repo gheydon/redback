@@ -548,7 +548,7 @@ class DB_RedBack
                      $v[$am] = $x;
                 }
             }
-            if (($max = max(array_keys($v))) > 0) {
+            if (($keys = array_keys($v)) && ($max = max($keys)) > 0) {
                 $v = array_union_key(array_fill(0, $max, ''), $v);
             }
             return implode(chr($top), $v);
