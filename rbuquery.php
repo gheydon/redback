@@ -1,8 +1,8 @@
 <?php
 require "redback.php";
 
-$rb = new redback;
-//$rb->__setDebug();
+$rb = new DB_RedBack;
+$rb->__setDebug();
 
 $rb->open('rangi:8401', 'EXMOD:EmployeeList');
 $rs = $rb->Select();

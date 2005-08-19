@@ -78,9 +78,9 @@ define('RETURN_SV_AS_SM', 32);
 define('RETURN_SV_AS_SV', 64);
 
 // }}}
-// {{{ redback
+// {{{ DB_RedBack
 
-class redback 
+class DB_RedBack 
 {
 
     // {{{ public properties
@@ -615,7 +615,7 @@ class redback
                         }
                     }
                     if (array_key_exists('HID_FIELDNAMES', $this->_properties)) {
-                        $ret = new redset($this);
+                        $ret = new DB_RedBack_RecordSet($this);
                     }
                     else {
                         $ret = true;
@@ -695,7 +695,7 @@ class redback
                 }
             }
             if (array_key_exists('HID_FIELDNAMES', $this->_properties)) {
-                $ret = new redset($this);
+                $ret = new DB_RedBack_RecordSet($this);
                 /*
                  * In the ASP and IBM version on the Redback Gateway the MaxRows is
                  * actually a virtual field that is created when a recordset is
@@ -720,9 +720,9 @@ class redback
 }
 
 // }}}
-// {{{ redset
+// {{{ DB_RedBack_RecordSet
 
-class redset implements Iterator {
+class DB_RedBack_RecordSet implements Iterator {
     /*
      * Public functions
      */ 

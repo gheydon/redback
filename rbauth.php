@@ -1,7 +1,7 @@
 <?php
 require 'redback.php';
 
-$rb = new redback;
+$rb = new RB_RedBack;
 $rb->__setDebug();
 
 if (!$rb->open('rangi:8401', 'EXMOD:Employee', 'rbadmin', 'redback')) {

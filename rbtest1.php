@@ -1,7 +1,7 @@
 <?php
 require 'redback.php';
 
-$rb = new redback;
+$rb = new DB_RedBack;
 $rb->__setDebug();
 $rb->__setMonitor();
 

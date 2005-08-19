@@ -1,7 +1,7 @@
 <?php 
 require("redback.php"); 
 
-$rb = new redback;
+$rb = new DB_RedBack;
 $rb->__setDebug();
 $rb->open('http://192.168.211.2:80/cgi-bin/rgw/rbexamples', 'EXMOD:Employee');
 
