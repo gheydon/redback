@@ -2,10 +2,10 @@
 require 'redback.php';
 
 $rb = new DB_RedBack;
-$rb->__setDebug();
-$rb->__setMonitor();
+//$rb->__setDebug();
+//$rb->__setMonitor();
 
-$rb->open('rangi:8401', 'EXMOD:Employee');
+$rb->open('rbexamples', 'EXMOD:Employee');
 $rb->EmpId = '1001';
 $rb->ReadData();
 

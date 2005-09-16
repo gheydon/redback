@@ -103,6 +103,21 @@ class DB_RedBack
 
     public function __construct($url = '', $method = '', $user = NULL, $pass = NULL)
     {
+        $this->_readini();
+
+        if (array_key_exists('Parameters', $this->_ini_parameters)) {
+            foreach ($this->_ini_parameters['Parameters'] as $k => $v) {
+                switch ($k) {
+                    case 'debug':
+                        $this->__setDebug($v ? true : false);
+                        break;
+                    case 'monitor':
+                        $this->__setMonitor($v ? true : false);
+                        break;
+                }
+            }
+        }
+        
         if ($url && $method) {
             $this->open($url, $method, $user, $pass);
         }
@@ -374,6 +389,7 @@ class DB_RedBack
     private $_monitor = false;
     private $_monitor_data = NULL;
     private $_return_mode = 18;
+    private $_ini_parameters = NULL;
 
     // }}}
  
@@ -387,7 +403,9 @@ class DB_RedBack
     {
         $this->_url_parts = parse_url($url);
         if (count($this->_url_parts) == 1) {
-            $this->_readini($url);
+            if (array_key_exists($this->_url_parts['path'], $this->_ini_parameters['Databases'])) {
+                $this->_url_parts = parse_url($this->_ini_parameters['Databases'][$this->_url_parts['path']]);
+            }
         }
         if (count($this->_url_parts) == 2) {
             $this->_comms_layer = 'rgw';
@@ -410,13 +428,21 @@ class DB_RedBack
     // }}}
     // {{{ _readini()
 
-    private function _readini($url) 
+    private function _readini() 
     {
-        if ($db = dba_popen('phprgw.ini', 'r', 'inifile')) {
-            if ($s = dba_fetch("[Databases]$url", $db)) {
-                $this->_url_parts = parse_url($s);
+        global $__RedBack_ini;
+
+        if (!$__RedBack_ini) {
+            $ini_path = DIRECTORY_SEPARATOR == '\\' ? array('.', 'C:\\winnt') : array('.', '/etc');
+            foreach ($ini_path as $directory) {
+                $file = $directory . DIRECTORY_SEPARATOR .'phprgw.ini';
+                if (file_exists($file)) {
+                    $__RedBack_ini = parse_ini_file($file, true);
+                    break;
+                }
             }
         }
+        $this->_ini_parameters = $__RedBack_ini;
     }
 
     // }}}
