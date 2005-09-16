@@ -25,6 +25,9 @@
  * @deprecated File deprecated in Release 2.0.0
  */
 
+// {{{ includes
+@include 'Log.php';
+// }}}
 // {{{ constants
 
 /*
@@ -114,6 +117,10 @@ class DB_RedBack
                     case 'monitor':
                         $this->__setMonitor($v ? true : false);
                         break;
+                    case 'log':
+                        if (class_exists('Log') && $v) {
+                            $this->_logger = &Log::factory('file', $v, 'redback', array('buffering' => true));
+                        }
                 }
             }
         }
@@ -129,6 +136,10 @@ class DB_RedBack
     public function __destruct() 
     {
         $this->close();
+        if (is_object($this->_logger)) {
+            $this->_logger->flush();
+            $this->_logger->close();
+        }
     }
     
     // }}}
@@ -390,6 +401,7 @@ class DB_RedBack
     private $_monitor_data = NULL;
     private $_return_mode = 18;
     private $_ini_parameters = NULL;
+    private $_logger = NULL;
 
     // }}}
  
@@ -677,6 +689,12 @@ class DB_RedBack
             $header = sprintf("PATH_INFO\xfeHTTP_USER_AGENT\xfeQUERY_STRING\xfeSPIDER_VERSION");
             $data = sprintf("/rbo/%s\xferedback=1\xfe%s\xfe101", $method, $qs);
             $out = sprintf('%010d%s%010d%s', strlen($header), $header, strlen($data), $data);
+
+            if (is_object($this->_logger)) {
+                $this->_logger->log(sprintf('%s %s', $method, $qs));
+                $start_time = microtime(true);
+            }
+            
             fwrite($fp, $out);
             /*
              * set up debug information
@@ -720,6 +738,11 @@ class DB_RedBack
                     } 
                 }
             }
+
+            if (is_object($this->_logger)) {
+                $this->_logger->log(sprintf('%s duration %f', $method, microtime(true) - $start_time));
+            }
+            
             if (array_key_exists('HID_FIELDNAMES', $this->_properties)) {
                 $ret = new DB_RedBack_RecordSet($this);
                 /*
