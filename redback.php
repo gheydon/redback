@@ -101,7 +101,7 @@ class DB_RedBack
     // }}}
     // {{{ __contruct()
 
-    public function __contruct($url = '', $obj = '', $user = NULL, $pass = NULL)
+    public function __construct($url = '', $method = '', $user = NULL, $pass = NULL)
     {
         if ($url && $method) {
             $this->open($url, $method, $user, $pass);
