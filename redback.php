@@ -740,7 +740,7 @@ class DB_RedBack
             }
 
             if (is_object($this->_logger)) {
-                $this->_logger->log(sprintf('%s duration %f', $method, microtime(true) - $start_time));
+                $this->_logger->log(sprintf('%s duration %fms', $method, (microtime(true) - $start_time) * 1000));
             }
             
             if (array_key_exists('HID_FIELDNAMES', $this->_properties)) {
