@@ -490,7 +490,6 @@ class DB_RedBack
                 case 'rgw':
                     return $this->_rgw_callmethod($method);
             }
-            $this->_tainted = false;
         }
     }
 
@@ -671,6 +670,7 @@ class DB_RedBack
         if ($this->_debug_mode) {
             $this->__Debug_Data[] = $debug;
         }
+        $this->_tainted = false;
         return $ret;
     }
 
@@ -762,6 +762,7 @@ class DB_RedBack
         if ($this->_debug_mode) {
             $this->__Debug_Data[] = $debug;
         }
+        $this->_tainted = false;
         return $ret;
     }
 
