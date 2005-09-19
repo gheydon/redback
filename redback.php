@@ -400,7 +400,7 @@ class DB_RedBack
     private $_monitor = false;
     private $_monitor_data = NULL;
     private $_return_mode = 18;
-    private $_ini_parameters = NULL;
+    private $_ini_parameters = array();
     private $_logger = NULL;
 
     // }}}
@@ -451,6 +451,9 @@ class DB_RedBack
                 if (file_exists($file)) {
                     $__RedBack_ini = parse_ini_file($file, true);
                     break;
+                }
+                else {
+                    $__RedBack_ini = array();
                 }
             }
         }
