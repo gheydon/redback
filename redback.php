@@ -137,7 +137,6 @@ class DB_RedBack
     {
         $this->close();
         if (is_object($this->_logger)) {
-            $this->_logger->flush();
             $this->_logger->close();
         }
     }
