@@ -15,7 +15,7 @@
  * the PHP License and are unable to obtain it through the web, please
  * send a note to license@php.net so we can mail you a copy immediately.
  *
- * @category   Net
+ * @category   DB
  * @package    RedBack
  * @author     Gordon Heydon <gordon@heydon.com.au>
  * @copyright  1997-2005 The PHP Group
@@ -599,6 +599,15 @@ class DB_RedBack
     }
 
     // }}}
+    // {{{ _add_error()
+    private function _add_error($err) {
+        if (!array_key_exists('HID_ERROR', $this->_properties)) {
+            $this->_properties['HID_ERROR'] = array('data' => '');
+        }
+        $this->_properties['HID_ERROR']['data'].= $this->_properties['HID_ERROR']['data'] ? '\n' : '' . $err;
+    }
+    // }}}
+
     /*
      * connection plugins
      */
@@ -685,9 +694,12 @@ class DB_RedBack
         $debug = array('tx' => '', 'rx' => '');
         $qs = $this->_build_data();
 
-        $fp = pfsockopen($this->_url_parts['host'], $this->_url_parts['port'], $errno, $errstr, 30);
-        if (!$fp) {
-            echo "$errstr ($errno)<br />\n";
+        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+        $result = socket_connect($socket, $this->_url_parts['host'], $this->_url_parts['port']);
+        if ($result < 0) {
+            $this->_add_error("connecting to server failed, Reason: ($result) " . socket_strerror($result));
+            socket_close($socket);
+            return false;
         } else {
             $header = sprintf("PATH_INFO\xfeHTTP_USER_AGENT\xfeQUERY_STRING\xfeSPIDER_VERSION");
             $data = sprintf("/rbo/%s\xferedback=1\xfe%s\xfe101", $method, $qs);
@@ -698,15 +710,14 @@ class DB_RedBack
                 $start_time = microtime(true);
             }
             
-            fwrite($fp, $out);
+            socket_write($socket, $out);
             /*
              * set up debug information
              */
             if ($this->_debug_mode) {
                 $debug['tx'] = $out;
             }
-            while (!feof($fp)) {
-                $length = fread($fp, 10);
+            while ($length = socket_read($socket, 10, PHP_BINARY_READ)) {
                 if ($this->_debug_mode) {
                     $debug['rx'] .= $length;
                 }
@@ -718,7 +729,15 @@ class DB_RedBack
                     $length = intval($length);
                     $s = '';
                     while ($length - strlen($s) > 0) {
-                        $s.= fread($fp, intval($length)-strlen($s));
+                        if ($data = socket_read($socket, intval($length)-strlen($s), PHP_BINARY_READ)) {
+                            $s.= $data;
+                        }
+                        else {
+                            $err = socket_last_error($socket);
+                            $this->_add_error("Error Reading from Server ($err) " . socket_strerror($err));
+                            socket_close($socket);
+                            return false;
+                        }
                     }
 
                     if ($this->_debug_mode) {
@@ -742,6 +761,12 @@ class DB_RedBack
                 }
             }
 
+            if ($err = socket_last_error($socket)) {
+                $this->_add_error("Error Reading from Server ($err) " . socket_strerror($err));
+                socket_close($socket);
+                return false;
+            }
+
             if (is_object($this->_logger)) {
                 $this->_logger->log(sprintf('%s duration %fms', $method, (microtime(true) - $start_time) * 1000));
             }
@@ -761,7 +786,7 @@ class DB_RedBack
                 $ret = array_key_exists('HID_ERROR', $this->_properties) ? false : true;
             }
         }
-        fclose($fp);
+        socket_close($socket);
         if ($this->_debug_mode) {
             $this->__Debug_Data[] = $debug;
         }
