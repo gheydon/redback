@@ -366,19 +366,21 @@ class DB_RedBack
 
     public function __getStats() 
     {
-        foreach ($this->_monitor_data as $k => $v) {
-            if (isset($v['data'])) {
-                $stats = array();
-                foreach (explode("\n", $v['data']) as $s) {
-                    if (preg_match('/\[(.*)\]/', $s, $match)) {
-                        $group = $match[1];
+        if (is_array($this->_monitor_data)) {
+            foreach ($this->_monitor_data as $k => $v) {
+                if (isset($v['data'])) {
+                    $stats = array();
+                    foreach (explode("\n", $v['data']) as $s) {
+                        if (preg_match('/\[(.*)\]/', $s, $match)) {
+                            $group = $match[1];
+                        }
+                        elseif ($group && preg_match('/^(.*)=(.*)$/', $s, $match)) {
+                            $stats[$group][$match[1]] = $match[2];
+                        }
                     }
-                    elseif ($group && preg_match('/^(.*)=(.*)$/', $s, $match)) {
-                        $stats[$group][$match[1]] = $match[2];
-                    }
+                    unset($this->_monitor_data[$k]['data']);
+                    $this->_monitor_data[$k] = array_merge($this->_monitor_data[$k],$stats);
                 }
-                unset($this->_monitor_data[$k]['data']);
-                $this->_monitor_data[$k] = array_merge($this->_monitor_data[$k],$stats);
             }
         }
         return $this->_monitor_data;
