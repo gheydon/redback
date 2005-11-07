@@ -757,7 +757,12 @@ class DB_RedBack
                             foreach ($match[1] as $k => $v) {
                                 $this->_properties[$match[1][$k]]['data'] = urldecode($match[2][$k]);
                             }
-                        } 
+                        }
+                        /* If this is a rboexplorer object the add the
+                         * response to the RESPONSE property */
+                        elseif ($this->_object == 'rboexplorer') {
+                            $this->_properties['RESPONSE']['data'] = $s;
+                        }
                     } 
                 }
             }
