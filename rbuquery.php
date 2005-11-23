@@ -1,10 +1,10 @@
 <?php
-require "redback.php";
+require "RedBack.php";
 
 $rb = new DB_RedBack;
 $rb->__setDebug();
 
-$rb->open('rangi:8401', 'EXMOD:EmployeeList');
+$rb->open('rbexamples', 'EXMOD:EmployeeList');
 $rs = $rb->Select();
 
 while (!$rs->eof()) {

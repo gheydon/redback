@@ -1,5 +1,5 @@
 <?php 
-require("redback.php"); 
+require("RedBack.php"); 
 
 $rb = new DB_RedBack;
 $rb->__setDebug();
