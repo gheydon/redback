@@ -116,6 +116,28 @@ class DB_RedBack
     }
     // }}}
     // {{{ __contruct()
+    /**
+     * DB_RedBack constructor
+     *
+     * @param   string  $url    A string which contains the path to the U2
+     *                          RedBack Server. This can be in the form of a
+     *                          standard uri for a web server if the cgi
+     *                          gateway is being used or a host:port if the
+     *                          communication is directly with the RedBack
+     *                          Scheduler.
+     *
+     * @param   string  $object An identfy which represents which RedBack
+     *                          object is to be opened.
+     *
+     * @param   string  $user   Name of the user the RedBack user to which
+     *                          this object is to be opened as.
+     *
+     * @param   string  $pass   Password for the user.
+     *
+     * @return  null
+     *
+     * @access  public
+     */
     public function __construct($url = '', $object = '', $user = NULL, $pass = NULL)
     {
         $this->_readini();
