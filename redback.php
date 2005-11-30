@@ -85,7 +85,6 @@ define('RETURN_SV_AS_SV', 64);
 
 class DB_RedBack 
 {
-
     // {{{ public properties
     
     /*
@@ -102,9 +101,22 @@ class DB_RedBack
     public $RBOHandle = NULL;
     
     // }}}
-    // {{{ __contruct()
+    // {{{ factory()
+    public function &factory($handler, $url = '', $object = '', $user = NULL, $pass = NULL) {
+        $handler = strtolower($handler);
+        $class   = 'DB_RedBack_' .$handler;
+        $classfile = 'RedBack/' .$handler .'.php';
 
-    public function __construct($url = '', $method = '', $user = NULL, $pass = NULL)
+        @include_once($classfile);
+
+        if (class_exists($class)) {
+            return new $class($url, $object, $user, $pass);
+        }
+        return false;
+    }
+    // }}}
+    // {{{ __contruct()
+    public function __construct($url = '', $object = '', $user = NULL, $pass = NULL)
     {
         $this->_readini();
 
@@ -125,8 +137,8 @@ class DB_RedBack
             }
         }
         
-        if ($url && $method) {
-            $this->open($url, $method, $user, $pass);
+        if ($url && $object) {
+            $this->open($url, $object, $user, $pass);
         }
     }
 
@@ -179,7 +191,7 @@ class DB_RedBack
     // {{{ open()
     
     public function open($url, $obj, $user = NULL, $pass = NULL) 
-    {
+    { 
         if ($user) {
             if (!$this->_authorise($url, $obj, $user, $pass)) {
                 return false;
@@ -188,7 +200,7 @@ class DB_RedBack
         return $this->_open($url, $obj);
     }
     
-    // }}}
+    // }}} 
     // {{{ close()
      
     /*
@@ -392,17 +404,17 @@ class DB_RedBack
     /*
      * Private varibles
      */
-    private $_comms_layer = '';
-    private $_url_parts = '';
-    private $_object = '';
-    private $_properties = NULL;
-    private $_tainted = false;
-    private $_debug_mode = false;
-    private $_monitor = false;
-    private $_monitor_data = NULL;
-    private $_return_mode = 18;
-    private $_ini_parameters = array();
-    private $_logger = NULL;
+    protected $_comms_layer = '';
+    protected $_url_parts = '';
+    protected $_object = '';
+    protected $_properties = NULL;
+    protected $_tainted = false;
+    protected $_debug_mode = false;
+    protected $_monitor = false;
+    protected $_monitor_data = NULL;
+    protected $_return_mode = 18;
+    protected $_ini_parameters = array();
+    protected $_logger = NULL;
 
     // }}}
  
@@ -412,19 +424,13 @@ class DB_RedBack
     
     // {{{ _open()
     
-    private function _open($url, $object) 
+    protected function _open($url, $object) 
     {
         $this->_url_parts = parse_url($url);
         if (count($this->_url_parts) == 1) {
             if (array_key_exists($this->_url_parts['path'], $this->_ini_parameters['Databases'])) {
                 $this->_url_parts = parse_url($this->_ini_parameters['Databases'][$this->_url_parts['path']]);
             }
-        }
-        if (count($this->_url_parts) == 2) {
-            $this->_comms_layer = 'rgw';
-        }
-        else {
-            $this->_comms_layer = 'cgi';
         }
         if (preg_match("/\xfd/", $object)) {
             $handle = explode(':', $object);
@@ -441,7 +447,7 @@ class DB_RedBack
     // }}}
     // {{{ _readini()
 
-    private function _readini() 
+    protected function _readini() 
     {
         global $__RedBack_ini;
 
@@ -464,7 +470,7 @@ class DB_RedBack
     // }}}
     // {{{ _authorise()
     
-    private function _authorise($url, $obj, $user, $pass) 
+    protected function _authorise($url, $obj, $user, $pass) 
     {
         $obj_parts = explode(':', $obj);
         $this->_open($url, "{$obj_parts[0]}:RPLOGIN");
@@ -485,22 +491,15 @@ class DB_RedBack
     // }}}
     // {{{ _callmethod()
     
-    private function _callmethod($method) 
+    protected function _callmethod($method) 
     {
-        if (isset($this->_url_parts)) {
-            switch($this->_comms_layer) {
-                case 'cgi':
-                    return $this->_cgi_callmethod($method);
-                case 'rgw':
-                    return $this->_rgw_callmethod($method);
-            }
-        }
+        return false;
     }
 
     // }}}
     // {{{ _check_property_access()
     
-    private function _check_property_access($property) 
+    protected function _check_property_access($property) 
     {
         if (array_key_exists($property, $this->_properties)) {
             if ($this->_debug_mode) {
@@ -523,7 +522,7 @@ class DB_RedBack
     // }}}
     // {{{ _build_data()
     
-    private function _build_data() 
+    protected function _build_data() 
     {
         // create post data 
         if ($this->_properties) {
@@ -563,7 +562,7 @@ class DB_RedBack
      * the array are numeric. If there is a alpha key then the max() will
      * return a alpha for the array_fill().
      */
-    private function _buildmv($v) 
+    protected function _buildmv($v) 
     {
         if (is_array($v)) {
             ksort($v);
@@ -601,205 +600,12 @@ class DB_RedBack
 
     // }}}
     // {{{ _add_error()
-    private function _add_error($err) {
+    protected function _add_error($err) {
         if (!array_key_exists('HID_ERROR', $this->_properties)) {
             $this->_properties['HID_ERROR'] = array('data' => '');
         }
         $this->_properties['HID_ERROR']['data'].= $this->_properties['HID_ERROR']['data'] ? '\n' : '' . $err;
     }
-    // }}}
-
-    /*
-     * connection plugins
-     */
-    // {{{ _cgi_callmethod()
-
-    private function _cgi_callmethod($method) 
-    {
-        $debug = array('tx' => '', 'rx' => '');
-        $data = $this->_build_data();
-
-        $fp = pfsockopen($this->_url_parts['host'], $this->_url_parts['port'] ? $this->_url_parts['port'] : 80, $errno, $errstr, 30);
-        if (!$fp) {
-            echo "$errstr ($errno)<br />\n";
-        } else {
-            $out = ($data ? "POST " : "GET ") .$this->_url_parts['path'] . (preg_match('/\/$/', $this->_url_parts['path']) ? '' : '/') .$method ."?redbeans=1 HTTP/1.1\r\n";
-            $out .= "User-agent: redbeans\r\n";
-            $out .= "Host: " .$this->_url_parts['host'] ."\r\n";
-            if ($data) {
-                $out .= "Content-Type: application/x-www-form-urlencoded\r\n";
-                $out .= "Content-Length: " .strlen($data) ."\r\n";
-            }
-            $out .= "Keep-Alive: 300\r\n";
-            $out .= "Connection: Keep-Alive\r\n\r\n";
-            if ($data) {
-                $out .= "$data";
-            }
-            fwrite($fp, $out);
-            /*
-             * set up debug information
-             */
-            if ($this->_debug_mode) {
-                $debug['tx'] = $out;
-            }
-
-            // strip monitor data from stream
-            if ($this->_monitor && preg_match("/(\[BackEnd\]..*)$/s", $s, $match)) {
-                $this->_monitor_data[] = array('method' => $method,'data' => preg_replace("/\x0d/", "\n", $match[1]));
-                $s = preg_replace("/\[BackEnd\].*$/s", '', $s);
-            }
-
-            if (!feof($fp)) {
-                $s = fgets($fp);
-                if ($this->_debug_mode) {
-                    $debug['rx'] .= $s;
-                }
-                if (preg_match('/^HTTP\/1.1 [12]00/', $s)) {
-                    while (!feof($fp)) {
-                        $s = fgets($fp);
-                        if ($this->_debug_mode) {
-                            $debug['rx'] .= $s;
-                        }
-                        if (preg_match('/^(.*)=(.*)/', $s, $match)) {
-                            $this->_properties[$match[1]]['data'] = urldecode($match[2]);
-                        }
-                    }
-                    if (array_key_exists('HID_FIELDNAMES', $this->_properties)) {
-                        $ret = new DB_RedBack_RecordSet($this);
-                    }
-                    else {
-                        $ret = true;
-                    }
-                }
-                else {
-                    $ret = false;
-                }
-            }
-            else {
-                $ret = false;
-            }
-        }
-        fclose($fp);
-        if ($this->_debug_mode) {
-            $this->__Debug_Data[] = $debug;
-        }
-        $this->_tainted = false;
-        return $ret;
-    }
-
-    // }}}
-    // {{{ _rgw_callmethod()
-
-    private function _rgw_callmethod($method) 
-    {
-        $debug = array('tx' => '', 'rx' => '');
-        $qs = $this->_build_data();
-
-        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-        $result = socket_connect($socket, $this->_url_parts['host'], $this->_url_parts['port']);
-        if ($result < 0) {
-            $this->_add_error("connecting to server failed, Reason: ($result) " . socket_strerror($result));
-            socket_close($socket);
-            return false;
-        } else {
-            $header = sprintf("PATH_INFO\xfeHTTP_USER_AGENT\xfeQUERY_STRING\xfeSPIDER_VERSION");
-            $data = sprintf("/rbo/%s\xferedback=1\xfe%s\xfe101", $method, $qs);
-            $out = sprintf('%010d%s%010d%s', strlen($header), $header, strlen($data), $data);
-
-            if (is_object($this->_logger)) {
-                $this->_logger->log(sprintf('%s %s', $method, $qs));
-                $start_time = microtime(true);
-            }
-            
-            socket_write($socket, $out);
-            /*
-             * set up debug information
-             */
-            if ($this->_debug_mode) {
-                $debug['tx'] = $out;
-            }
-            while ($length = socket_read($socket, 10, PHP_BINARY_READ)) {
-                if ($this->_debug_mode) {
-                    $debug['rx'] .= $length;
-                }
-                if (is_numeric($length) && intval($length) > 0) {
-                    // because large packets will be split over multiple packets what
-                    // would be good is to instead load a packet and then process all
-                    // of the packet it can. This would be a little more memory
-                    // efficent than building the whole string and then processing it.
-                    $length = intval($length);
-                    $s = '';
-                    while ($length - strlen($s) > 0) {
-                        if ($data = socket_read($socket, intval($length)-strlen($s), PHP_BINARY_READ)) {
-                            $s.= $data;
-                        }
-                        else {
-                            $err = socket_last_error($socket);
-                            $this->_add_error("Error Reading from Server ($err) " . socket_strerror($err));
-                            socket_close($socket);
-                            return false;
-                        }
-                    }
-
-                    if ($this->_debug_mode) {
-                        $debug['rx'] .= $s;
-                    }
-
-                    // strip monitor data from stream
-                    if ($this->_monitor && preg_match("/(\[BackEnd\]..*)$/s", $s, $match)) {
-                        $this->_monitor_data[] = array('method' => $method, 'data' => preg_replace("/\x0d/", "\n", $match[1]));
-                        $s = preg_replace("/\[BackEnd\].*$/s", '', $s);
-                    }
-                    
-                    if (preg_match('/^N/', $s)) { // Only look at N type records
-                        $s = substr($s, 1);
-                        if (preg_match_all('/^(.*?)=(.*?)$/m', $s, $match)) {
-                            foreach ($match[1] as $k => $v) {
-                                $this->_properties[$match[1][$k]]['data'] = urldecode($match[2][$k]);
-                            }
-                        }
-                        /* If this is a rboexplorer object the add the
-                         * response to the RESPONSE property */
-                        elseif ($this->_object == 'rboexplorer') {
-                            $this->_properties['RESPONSE']['data'] = $s;
-                        }
-                    } 
-                }
-            }
-
-            if ($err = socket_last_error($socket)) {
-                $this->_add_error("Error Reading from Server ($err) " . socket_strerror($err));
-                socket_close($socket);
-                return false;
-            }
-
-            if (is_object($this->_logger)) {
-                $this->_logger->log(sprintf('%s duration %fms', $method, (microtime(true) - $start_time) * 1000));
-            }
-            
-            if (array_key_exists('HID_FIELDNAMES', $this->_properties)) {
-                $ret = new DB_RedBack_RecordSet($this);
-                /*
-                 * In the ASP and IBM version on the Redback Gateway the MaxRows is
-                 * actually a virtual field that is created when a recordset is
-                 * returned. This behaviour is going to be duplicated.
-                 */
-                if (array_key_exists('HID_MAX_ITEMS', $this->_properties)) {
-                    $this->_properties['MaxRows'] = $this->_properties['HID_MAX_ITEMS'];
-                }
-            }
-            else {
-                $ret = array_key_exists('HID_ERROR', $this->_properties) ? false : true;
-            }
-        }
-        socket_close($socket);
-        if ($this->_debug_mode) {
-            $this->__Debug_Data[] = $debug;
-        }
-        $this->_tainted = false;
-        return $ret;
-    }
-
     // }}}
 }
 

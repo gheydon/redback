@@ -1,7 +1,7 @@
 <?php
 require "RedBack.php";
 
-$rb = new DB_RedBack;
+$rb = &DB_RedBack::factory('socket');
 //$rb->__setDebug();
 
 $rb->open('rbexamples', 'EXMOD:EmployeeList');

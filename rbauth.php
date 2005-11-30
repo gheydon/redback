@@ -1,7 +1,7 @@
 <?php
 require 'RedBack.php';
 
-$rb = new RB_RedBack;
+$rb = &DB_RedBack::factory('socket');
 $rb->__setDebug();
 
 if (!$rb->open('rangi:8401', 'EXMOD:Employee', 'rbadmin', 'redback')) {
