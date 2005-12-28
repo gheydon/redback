@@ -26,10 +26,17 @@
  */
 
 // {{{ DB_RedBack_socket
-
+/**
+ * Connection method to communicate directly with the RedBack Scheduler
+ *
+ * @package Connection
+ */
 class DB_RedBack_socket extends DB_RedBack 
 {
     // {{{ _callmethod()
+    /**
+     * Communicate with a RedBack Schedular.
+     */
 
     protected function _callmethod($method) 
     {

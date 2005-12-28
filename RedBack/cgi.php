@@ -26,10 +26,19 @@
  */
 
 // {{{ DB_RedBack_cgi
-
+/**
+ * Connection object which allows the access to the RedBack Schedular via
+ * the CGI gateway
+ *
+ * @package Connection
+ */
 class DB_RedBack_cgi extends DB_RedBack
 {
     // {{{ _callmethod()
+    /**
+     * cgi connection method to allow the DB_RedBack to communicate with the
+     * RedBack Scheduler.
+     */
 
     protected function _callmethod($method) 
     {
