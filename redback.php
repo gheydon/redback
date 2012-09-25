@@ -471,7 +471,7 @@ class DB_RedBack
      *
      * If the multi valued data is 
      *
-     * 'Attibute 1þAttribute 2'
+     * 'Attibute 1]Attribute 2'
      *
      * The result would be :-
      *
@@ -481,7 +481,7 @@ class DB_RedBack
      *
      * And the following would be
      *
-     * 'Attibute 1, VM 1ýAttribute 1, VM 2þAtribute 2'
+     * 'Attibute 1, VM 1]Attribute 1, VM 2]Atribute 2'
      *
      * would turn into this.
      *
