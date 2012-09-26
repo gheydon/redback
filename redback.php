@@ -913,9 +913,9 @@ class DB_RedBack_RecordSet implements Iterator {
         static $position, $arr;
         if ($position != $this->_position) {
             $arr = array();
-            $data = $this->_rbo->getproperty('HID_ROW_' .(($this->_position-$this->_fromitem)+1), true, RETURN_AM);
+            $data = $this->_rbo->getproperty('HID_ROW_' .(((string)$this->_position-$this->_fromitem)+1), true, RETURN_AM);
             foreach ($this->_fields as $k => $v) {
-                $arr[$v] = $data[$k];
+                $arr[(string)$v] = $data[$k];
             }
         }
         return $property ? $arr[$property] : $arr;
@@ -986,11 +986,11 @@ class DB_RedBack_RecordSet implements Iterator {
     }
 
     private function _setup() {
-        $this->_pageno = $this->_rbo->getproperty('HID_PAGENO', true, RETURN_SV_AS_SV);
-        $this->_maxitems = $this->_rbo->getproperty('HID_MAX_ITEMS', true, RETURN_SV_AS_SV);
-        $this->_position = $this->_fromitem = $this->_rbo->getproperty('HID_FROM_ITEM', true, RETURN_SV_AS_SV);
-        $this->_uptoitem = $this->_rbo->getproperty('HID_UPTO_ITEM', true, RETURN_SV_AS_SV);
-        $this->_pagesize = $this->_rbo->getproperty('HID_PAGE_SIZE', true, RETURN_SV_AS_SV);
+        $this->_pageno = (string)$this->_rbo->getproperty('HID_PAGENO', true, RETURN_SV_AS_SV);
+        $this->_maxitems = (string)$this->_rbo->getproperty('HID_MAX_ITEMS', true, RETURN_SV_AS_SV);
+        $this->_position = $this->_fromitem = (string) $this->_rbo->getproperty('HID_FROM_ITEM', true, RETURN_SV_AS_SV);
+        $this->_uptoitem = (string)$this->_rbo->getproperty('HID_UPTO_ITEM', true, RETURN_SV_AS_SV);
+        $this->_pagesize = (string)$this->_rbo->getproperty('HID_PAGE_SIZE', true, RETURN_SV_AS_SV);
     }
 }
 
