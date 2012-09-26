@@ -87,7 +87,7 @@ class DB_RedBack_cgi extends DB_RedBack
                             $debug['rx'] .= $s;
                         }
                         if (preg_match('/^(.*)=(.*)/', $s, $match)) {
-                            $this->_properties[$match[1]]['data'] = urldecode($match[2]);
+                            $this->_properties[$match[1]]['data'] = new DB_RedBack_Array(urldecode($match[2]));
                         }
                     }
                     if (array_key_exists('HID_FIELDNAMES', $this->_properties)) {

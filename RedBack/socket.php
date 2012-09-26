@@ -101,7 +101,7 @@ class DB_RedBack_socket extends DB_RedBack
                         $s = substr($s, 1);
                         if (preg_match_all('/^(.*?)=(.*?)$/m', $s, $match)) {
                             foreach ($match[1] as $k => $v) {
-                                $this->_properties[$match[1][$k]]['data'] = urldecode($match[2][$k]);
+                                $this->_properties[$match[1][$k]]['data'] = new DB_RedBack_Array(urldecode($match[2][$k]));
                             }
                         }
                         /* If this is a rboexplorer object the add the

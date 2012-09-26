@@ -58,6 +58,14 @@ define("VM", chr(253));
 define("SV", chr(252));
 
 /**
+ * Define order of Pick Delimiters
+ */
+
+define('RB_TYPE_AM', 0);
+define('RB_TYPE_VM', 1);
+define('RB_TYPE_SV', 2);
+
+/**
  * return multi-valued data in an attribute mark format.
  */
 
@@ -440,7 +448,7 @@ class DB_RedBack
             // process array of values to set
             foreach ($property as $k => $v) {
                 if ($override || $this->_check_property_access($k)) {
-                    $this->_properties[$k]['data'] = $this->_buildmv($v);
+                    $this->_properties[$k]['data']->set($v);
                     $this->_properties[$k]['tainted'] = true;
                     $this->_tainted = true;
                 }
@@ -448,7 +456,7 @@ class DB_RedBack
         }
         else {
             if ($override || $this->_check_property_access($property)) {
-                $this->_properties[$property]['data'] = $this->_buildmv($value);
+                $this->_properties[$property]['data']->set($value);
                 $this->_properties[$property]['tainted'] = true;
                 $this->_tainted = true;
             }
@@ -514,50 +522,7 @@ class DB_RedBack
     {
         $return = ($return ? $return : $this->_return_mode);
         if (array_key_exists($property, $this->_properties) && $override || $this->_check_property_access($property)) {
-            if (!strstr($this->_properties[$property]['data'], AM) && 
-                    !strstr($this->_properties[$property]['data'], VM) && 
-                    !strstr($this->_properties[$property]['data'], SV)) {
-                if ($return & RETURN_SV_AS_AM) {
-                    $data = array($this->_properties[$property]['data']);
-                }
-                elseif ($return & RETURN_SV_AS_VM) {
-                    $data = array(array($this->_properties[$property]['data']));
-                }
-                elseif ($return & RETURN_SV_AS_SM) {
-                    $data = array(array(array($this->_properties[$property]['data'])));
-                }
-                else {
-                    return $this->_properties[$property]['data'];
-                }
-            }
-            else {
-                $data = explode(AM, $this->_properties[$property]['data']);
-                if ($addsv = strstr($this->_properties[$property]['data'], SV)) {
-                    $addvm = true;
-                }
-                else {
-                    $addvm = strstr($this->_properties[$property]['data'], VM);
-                }
-                if ($addvm) {
-                    foreach ($data as $am => $v) {
-                        $data[$am] = explode(VM, $v);
-                        if ($addsv) {
-                            foreach ($data[$am] as $vm => $v) {
-                                $data[$am][$vm] = explode(SV, $v);
-                            }
-                        }
-                    }
-                }
-            }
-            if ($return & RETURN_AM) {
-                return is_array($data) ? $data : false;
-            }
-            elseif ($return & RETURN_VM) {
-                return is_array($data) ? $data[0] : false;
-            }
-            elseif ($return & RETURN_SM) {
-                return is_array($data) && is_array($data[0]) ? $data[0][0] : false;
-            }
+            return $this->_properties[$property]['data'];
         }
         return false;
     }
@@ -704,8 +669,8 @@ class DB_RedBack
         }
         if (preg_match("/\xfd/", $object)) {
             $handle = explode(':', $object);
-            $this->_properties['HID_FORM_INST']['data'] = $handle[0];
-            $this->_properties['HID_USER']['data'] = $handle[1];
+            $this->_properties['HID_FORM_INST']['data'] = new DB_RedBack_Array($handle[0]);
+            $this->_properties['HID_USER']['data'] = new DB_RedBack_Array($handle[1]);
             $object = ',.Refresh()';
         }
         $ret = $this->_callmethod($object);
@@ -820,55 +785,6 @@ class DB_RedBack
             $data.= "&MONITOR=1";
         }
         return $data;
-    }
-
-    // }}}
-    // {{{ _buildmv()
- 
-    /*
-     * this function turns a PHP array back into a multivalued field.
-     *
-     * TODO: I also think this could be a little tidier and faster by using
-     * array_walk_recusive() instead.
-     *
-     * WARNING: This function is relying on the fact that all of the keys in
-     * the array are numeric. If there is a alpha key then the max() will
-     * return a alpha for the array_fill().
-     */
-    protected function _buildmv($v) 
-    {
-        if (is_array($v)) {
-            ksort($v);
-            if ($this->_return_mode & RETURN_VM) {
-                $top = 253;
-            }
-            elseif ($this->_return_mode & RETURN_SM) {
-                $top = 252;
-            }
-            else {
-                $top = 254;
-            }
-            foreach ($v as $am => $x) {
-                $v[$am] = is_array($x) ? implode(chr($top-2), $x) : $x;
-                if (is_array($x)) {
-                     ksort($x);
-                     if (($max = max(array_keys($x))) > 0) {
-                         $x = array_union_key(array_fill(0, $max, ''), $x);
-                     }
-                     $v[$am] = implode(chr($top-2), $x);
-                }
-                else {
-                     $v[$am] = $x;
-                }
-            }
-            if (($keys = array_keys($v)) && ($max = max($keys)) > 0) {
-                $v = array_union_key(array_fill(0, $max, ''), $v);
-            }
-            return implode(chr($top), $v);
-        }
-        else {
-            return $v;
-        }
     }
 
     // }}}
@@ -1114,6 +1030,160 @@ function array_union_key()
         }
     }
     return $a1;
+}
+
+// }}}
+// {{{ DB_RedBack_Array
+
+class DB_RedBack_Array implements ArrayAccess, Countable, Iterator {
+  private $parent = NULL;
+  private $parent_delta = NULL;
+  private $iterator_position = 1;
+  private $data = array();
+  private $parent_type = AM;
+  
+  public function __construct($value = NULL, $parent = NULL, $delta = NULL) {
+    $this->parent = $parent;
+    $this->parent_delta = $delta;
+    
+    if ($value) {
+      $this->set($value);
+    }
+  }
+  
+  public function __toString() {
+    if (empty($this->data)) {
+      return '';
+    }
+    
+    if (isset($this->data[0])) {
+      return (string)$this->data[0];
+    }
+    
+    // Add in all the blanks and get the values in the right order.
+    $data = $this->data + array_fill(1, max(array_keys($this->data)), '');
+    ksort($data, SORT_NUMERIC);
+
+    return implode($this->parent_type, $data);
+  }
+  
+  public function get($delta) {
+    // In PICK 0 is a special in that it returns all values;
+    if ($delta === 0 || ($delta == 1 && isset($this->data[0]))) {
+      return $this;
+    }
+    elseif (is_numeric($delta)) {
+      return isset($this->data[$delta]) ? $this->data[$delta] : new DB_RedBack_Array(NULL, $this, $delta);
+    }
+    else {
+      throw Exception('There can be only numerical keyed items in the array');
+    }
+  }
+  
+  public function set($value) {
+    static $delimiter_order = array(RB_TYPE_AM => AM, RB_TYPE_VM => VM, RB_TYPE_SV => SV);
+    
+    if (is_scalar($value)) {
+      $this->data = array(); // all data is cleared.
+      $delmiter_found = FALSE;
+      
+      foreach ($delimiter_order as $type => $char) {
+        if (strpos($value, $char) !== FALSE) {
+          $delmiter_found = $type;
+          break;
+        }
+      }
+      
+      if ($delmiter_found !== FALSE) {
+        $this->parent_type = $delimiter_order[$delmiter_found];
+        
+        foreach (explode($delimiter_order[$delmiter_found], $value) as $delta => $subvalue) {
+          $this->data[$delta+1] = new DB_RedBack_Array($subvalue, $this);
+        }
+      }
+      elseif (!empty($value)) {
+        $this->data[0] = $value;
+      }
+      
+      if (!empty($this->data) && isset($this->parent) && isset($this->parent_delta)) {
+        $this->parent->updateParent($this, $this->parent_delta);
+      }
+    }
+  }
+  
+  public function updateParent($child, $delta) {
+    // if there is a value in 0 move it to 1.
+    if (isset($this->data[0])) {
+      $value = $this->data[0];
+      unset($this->data);
+      
+      $this->data[1] = new DB_RedBack_Array($value, $this, 1);
+    }
+    
+    $this->data[$delta] = $child;
+  }
+
+  public function value($delta) {
+    var_dump($this->_data);
+  }
+  
+  // As per how PICK handles this, in that doesn't exist is a null string.
+  public function offsetExists($delta) {
+    if ($delta === 0) {
+      return !empty($this->data);
+    }
+    else {
+      $value = (string)$this->get($delta);
+    
+      return !empty($value);
+    }
+  }
+  
+  public function offsetGet($delta) {
+    return $this->get($delta);
+  }
+  
+  public function offsetSet($delta, $value) {
+    $this->get($delta)->set($value);
+  }
+  
+  public function offsetUnset($delta) {
+    unset($this->data[$delta]);
+  }
+  
+  // Return the count the same as the DCOUNT() in PICK
+  public function count() {
+    if (empty($this->data)) {
+      return 0;
+    }
+    if ($max = max(array_keys($this->data))) {
+      return $max;
+    }
+    else {
+      return 1;
+    }
+  }
+  
+  public function current() {
+    return $this->get($this->iterator_position);
+  }
+  
+  public function key() {
+    return $this->iterator_position;
+  }
+  
+  public function next() {
+    $this->iterator_position++;
+  }
+  
+  public function rewind() {
+    $this->iterator_position = 1;
+  }
+  
+  public function valid() {
+    $max = isset($this->data[0]) ? 1 : max(array_keys($this->data));
+    return $this->iterator_position <= $max;
+  }
 }
 
 // }}}
