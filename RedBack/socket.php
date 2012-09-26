@@ -46,9 +46,8 @@ class DB_RedBack_socket extends DB_RedBack
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
         $result = @socket_connect($socket, $this->_url_parts['host'], $this->_url_parts['port']);
         if (!$result) {
-            $this->_add_error("connecting to server failed, Reason: ($result) " . socket_strerror($result));
             socket_close($socket);
-            return false;
+            throw Exception("connecting to server failed, Reason: ($result) " . socket_strerror($result));
         } else {
             $header = sprintf("PATH_INFO\xfeHTTP_USER_AGENT\xfeQUERY_STRING\xfeSPIDER_VERSION");
             $data = sprintf("/rbo/%s\xferedback=1\xfe%s\xfe101", $method, $qs);
@@ -83,9 +82,8 @@ class DB_RedBack_socket extends DB_RedBack
                         }
                         else {
                             $err = socket_last_error($socket);
-                            $this->_add_error("Error Reading from Server ($err) " . socket_strerror($err));
                             socket_close($socket);
-                            return false;
+                            throw Exception("Error Reading from Server ($err) " . socket_strerror($err));
                         }
                     }
 
@@ -116,8 +114,8 @@ class DB_RedBack_socket extends DB_RedBack
             }
 
             if ($err = socket_last_error($socket)) {
-                $this->_add_error("Error Reading from Server ($err) " . socket_strerror($err));
                 socket_close($socket);
+                throw Exception("Error Reading from Server ($err) " . socket_strerror($err));
                 return false;
             }
 

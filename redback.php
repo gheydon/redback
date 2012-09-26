@@ -871,14 +871,6 @@ class DB_RedBack
     }
 
     // }}}
-    // {{{ _add_error()
-    protected function _add_error($err) {
-        if (!array_key_exists('HID_ERROR', $this->_properties)) {
-            $this->_properties['HID_ERROR'] = array('data' => '');
-        }
-        $this->_properties['HID_ERROR']['data'].= $this->_properties['HID_ERROR']['data'] ? '\n' : '' . $err;
-    }
-    // }}}
 }
 
 // }}}
