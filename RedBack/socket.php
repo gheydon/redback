@@ -49,8 +49,8 @@ class DB_RedBack_socket extends DB_RedBack
             socket_close($socket);
             throw Exception("connecting to server failed, Reason: ($result) " . socket_strerror($result));
         } else {
-            $header = sprintf("PATH_INFO\xfeHTTP_USER_AGENT\xfeQUERY_STRING\xfeSPIDER_VERSION");
-            $data = sprintf("/rbo/%s\xferedback=1\xfe%s\xfe101", $method, $qs);
+            $header = sprintf("PATH_INFO\xfeRPVERSION\xfeHTTP_USER_AGENT\xfeQUERY_STRING\xfeSPIDER_VERSION");
+            $data = sprintf("/rbo/%s\xfe4.3.0.123\xferedback=1\xfe%s\xfe101", $method, $qs);
             $out = sprintf('%010d%s%010d%s', strlen($header), $header, strlen($data), $data);
 
             if (is_object($this->_logger)) {
