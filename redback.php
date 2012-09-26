@@ -174,7 +174,8 @@ class DB_RedBack
         @include_once($classfile);
 
         if (class_exists($class)) {
-            return new $class($url, $object, $user, $pass);
+            $obj = new $class($url, $object, $user, $pass);
+            return $obj;
         }
         return false;
     }
@@ -728,7 +729,7 @@ class DB_RedBack
             foreach ($ini_path as $directory) {
                 $file = $directory . DIRECTORY_SEPARATOR .'phprgw.ini';
                 if (file_exists($file)) {
-                    $__RedBack_ini = parse_ini_file($file, true);
+                    $__RedBack_ini = @parse_ini_file($file, true);
                     break;
                 }
                 else {
