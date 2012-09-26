@@ -415,7 +415,14 @@ class DB_RedBack
     
     public function callmethod($method) 
     {
-        return $this->_callmethod("$this->_object,this.$method");
+        $ret = $this->_callmethod("{$this->_object},this.{$method}");
+        
+        // Check that there are no major errors.
+        if (isset($this->_properties['HID_ERROR']) && $this->_properties['HID_ERROR'] > 0) {
+          throw new Exception($this->getproperty('HID_ALERT', true));
+        }
+        
+        return $ret;
     }
     
     // }}}
@@ -674,6 +681,11 @@ class DB_RedBack
             $object = ',.Refresh()';
         }
         $ret = $this->_callmethod($object);
+        
+        if (isset($this->_properties['HID_ERROR']) && $this->_properties['HID_ERROR'] > 0) {
+          throw new Exception($this->_properties['HID_ALERT']['data']);
+        }
+        
         $this->RBOHandle = $this->_properties['HID_FORM_INST']['data'] .':' .$this->_properties['HID_USER']['data'];
         $this->_object = isset($this->_properties['HID_HANDLE']) ? $this->_properties['HID_HANDLE']['data'] : '';
         return $ret;
