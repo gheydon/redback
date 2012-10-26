@@ -1,6 +1,10 @@
 <?php
 
-namespace RocketSoftware\u2\RedBack\Gateway
+namespace RocketSoftware\u2\RedBack\Gateway;
+
+use RocketSoftware\u2\RedBack\uObject;
+use RocketSoftware\u2\RedBack\uQuery;
+use RocketSoftware\u2\RedBack\uArray;
 
 /**
  * RedBack Gateway for PHP
@@ -31,7 +35,7 @@ namespace RocketSoftware\u2\RedBack\Gateway
  *
  * @package Connection
  */
-class cgi extends RocketSoftware\u2\RedBack\uObject {
+class cgi extends uObject {
   /**
    * cgi connection method to allow the DB_RedBack to communicate with the
    * RedBack Scheduler.
