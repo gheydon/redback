@@ -185,8 +185,8 @@ class uObject {
    * @access public
    */
   public function __set($property, $value) {
-    if ($this->_check_property_access($property)) {
-      $this->setproperty($property, $value);
+    if ($this->checkAccess($property)) {
+      $this->set($property, $value);
     }
     else {
       trigger_error(sprintf('Undefined property: %s::%s.', get_class($this), $property), E_USER_ERROR);
@@ -209,7 +209,7 @@ class uObject {
    */
 
   public function __get($property) {
-    if ($this->_check_property_access($property)) {
+    if ($this->checkAccess($property)) {
       return $this->get($property);
     }
     else {
@@ -337,7 +337,7 @@ class uObject {
     if (is_array($property)) {
       // process array of values to set
       foreach ($property as $k => $v) {
-        if ($override || $this->_check_property_access($k)) {
+        if ($override || $this->checkAccess($k)) {
           $this->_properties[$k]['data']->set($v);
           $this->_properties[$k]['tainted'] = TRUE;
           $this->_tainted = TRUE;
@@ -345,7 +345,7 @@ class uObject {
       }
     }
     else {
-      if ($override || $this->_check_property_access($property)) {
+      if ($override || $this->checkAccess($property)) {
         $this->_properties[$property]['data']->set($value);
         $this->_properties[$property]['tainted'] = TRUE;
         $this->_tainted = TRUE;
@@ -369,13 +369,35 @@ class uObject {
    * @return uArray return the uArray object for the propetry specified
    */
 
-    if (array_key_exists($property, $this->_properties) && $override || $this->_check_property_access($property)) {
   public function get($property, $override = FALSE) {
+    if (array_key_exists($property, $this->_properties) && $override || $this->checkAccess($property)) {
       return $this->_properties[$property]['data'];
     }
     return FALSE;
   }
 
+  /**
+   * Check the the fields exist and are accessible.
+   */
+  public function checkAccess($property) {
+    if (array_key_exists($property, $this->_properties)) {
+      if ($this->_debug_mode) {
+        return TRUE;
+      }
+      else {
+        if (preg_match('/^HID_/', $property)) {
+          return FALSE;
+        }
+        else {
+          return TRUE;
+        }
+      }
+    }
+    else {
+      return FALSE;
+    }
+  }
+  
   /**
    * Return an array of all the errors that have been set.
    *
@@ -543,25 +565,6 @@ class uObject {
 
   protected function _callmethod($method) {
     return FALSE;
-  }
-
-  protected function _check_property_access($property) {
-    if (array_key_exists($property, $this->_properties)) {
-      if ($this->_debug_mode) {
-        return TRUE;
-      }
-      else {
-        if (preg_match('/^HID_/', $property)) {
-          return FALSE;
-        }
-        else {
-          return TRUE;
-        }
-      }
-    }
-    else {
-      return FALSE;
-    }
   }
 
   protected function _build_data() {
