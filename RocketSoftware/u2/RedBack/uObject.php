@@ -91,7 +91,7 @@ class uObject {
    *
    * @access public
    */
-  public function factory($handler, $url = '', $object = '', $user = NULL, $pass = NULL) {
+  public static function factory($handler, $url = '', $object = '', $user = NULL, $pass = NULL) {
     $class  = '\\RocketSoftware\\u2\\RedBack\\Gateway\\' . $handler;
 
     return new $class($url, $object, $user, $pass);
