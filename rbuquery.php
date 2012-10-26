@@ -8,7 +8,7 @@ $rb->open('rbexamples', 'EXMOD:EmployeeList');
 $rs = $rb->Select();
 
 while (!$rs->eof()) {
-  var_dump($rs->getproperty());
+  var_dump($rs->get());
   flush();
   $rs->movenext();
 }

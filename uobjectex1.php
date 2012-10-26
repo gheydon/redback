@@ -6,7 +6,7 @@ $rb->__setDebug();
 $rb->open('http://192.168.211.2:80/cgi-bin/rgw/rbexamples', 'EXMOD:Employee');
 
 if ($_POST) {
-	$rb->setproperty($_POST['edit']);
+	$rb->set($_POST['edit']);
 	$rb->ReadData();
 }
 ?>

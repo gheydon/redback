@@ -176,11 +176,11 @@ class uObject {
    * is the same as the following
    *
    * <code>
-   * $rbobj->setproperty('name', 'John Doe');
+   * $rbobj->set('name', 'John Doe');
    * </code>
    *
    * sometime the need will a raise when you will need to use the
-   * setproperty() method instead of the overloaded function.
+   * set() method instead of the overloaded function.
    *
    * @access public
    */
@@ -210,7 +210,7 @@ class uObject {
 
   public function __get($property) {
     if ($this->_check_property_access($property)) {
-      return $this->getproperty($property);
+      return $this->get($property);
     }
     else {
       trigger_error(sprintf('Undefined property: %s::%s.', get_class($this), $property), E_USER_ERROR);
@@ -304,7 +304,7 @@ class uObject {
 
     // Check that there are no major errors.
     if (isset($this->_properties['HID_ERROR']) && $this->_properties['HID_ERROR'] > 0) {
-      $e = new \Exception($this->getproperty('HID_ALERT', TRUE));
+      $e = new \Exception($this->get('HID_ALERT', TRUE));
       throw $e;
     }
 
@@ -314,7 +314,7 @@ class uObject {
   /**
    * Set a RBO property to a new value.
    *
-   * setproperty() will set the an RBO property to any desired value.
+   * set() will set the an RBO property to any desired value.
    *
    * @access public
    *
@@ -333,7 +333,7 @@ class uObject {
    *               issues.
    */
 
-  public function setproperty($property, $value = array(), $override = FALSE) {
+  public function set($property, $value = array(), $override = FALSE) {
     if (is_array($property)) {
       // process array of values to set
       foreach ($property as $k => $v) {
@@ -369,8 +369,8 @@ class uObject {
    * @return uArray return the uArray object for the propetry specified
    */
 
-  public function getproperty($property, $override = FALSE) {
     if (array_key_exists($property, $this->_properties) && $override || $this->_check_property_access($property)) {
+  public function get($property, $override = FALSE) {
       return $this->_properties[$property]['data'];
     }
     return FALSE;
@@ -386,7 +386,7 @@ class uObject {
    * @return array  An array of all the errors that have occured.
    */
   public function __getError() {
-    return explode("\n", $this->getproperty('HID_ALERT', TRUE));
+    return explode("\n", $this->get('HID_ALERT', TRUE));
   }
 
   /**
@@ -527,8 +527,8 @@ class uObject {
   protected function _authorise($url, $obj, $user, $pass) {
     $obj_parts = explode(':', $obj);
     $this->_open($url, "{$obj_parts[0]}:RPLOGIN");
-    $this->setproperty('USERID', $user);
-    $this->setproperty('PASSWORD', $pass);
+    $this->set('USERID', $user);
+    $this->set('PASSWORD', $pass);
     if ($this->callmethod('ADOLogin')) {
       $props = array();
       $props['HID_FORM_INST'] = $this->_properties['HID_FORM_INST'];

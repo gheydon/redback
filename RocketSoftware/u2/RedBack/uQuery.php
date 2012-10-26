@@ -30,7 +30,7 @@ class uQuery implements \Iterator {
    */
   public function __construct($rbo) {
     $this->_rbo = $rbo;
-    $this->_fields = $rbo->getproperty('HID_FIELDNAMES', TRUE);
+    $this->_fields = $rbo->get('HID_FIELDNAMES', TRUE);
     $this->_setup();
   }
 
@@ -49,7 +49,7 @@ class uQuery implements \Iterator {
 
   public function __get($property) {
     if (in_array($property, $this->_fields)) {
-      return $this->getproperty($property);
+      return $this->get($property);
     }
     else {
       trigger_error(sprintf('Undefined property: %s::%s.', get_class($this), $property), E_USER_ERROR);
@@ -69,7 +69,7 @@ class uQuery implements \Iterator {
    */
 
   public function current() {
-    return $this->eof() ? FALSE : $this->getproperty();
+    return $this->eof() ? FALSE : $this->get();
   }
 
   /**
@@ -86,7 +86,7 @@ class uQuery implements \Iterator {
 
   public function next() {
     $this->movenext();
-    return $this->eof() ? FALSE : $this->getproperty();
+    return $this->eof() ? FALSE : $this->get();
   }
 
   /**
@@ -109,11 +109,11 @@ class uQuery implements \Iterator {
    *               properties or just the requested
    *               property.
    */
-  public function getproperty($property = NULL) {
+  public function get($property = NULL) {
     static $position, $arr;
     if ($position != $this->_position) {
       $arr = array();
-      $data = $this->_rbo->getproperty('HID_ROW_' .(((string)$this->_position-$this->_fromitem)+1), TRUE);
+      $data = $this->_rbo->get('HID_ROW_' .(((string)$this->_position-$this->_fromitem)+1), TRUE);
       foreach ($this->_fields as $k => $v) {
         $arr[(string)$v] = $data[$k];
       }
@@ -174,7 +174,7 @@ class uQuery implements \Iterator {
     // get the correct page
     if ($position < $this->_fromitem || $position > $this->_uptoitem) {
       $pageno = intval($position / $this->_pagesize) + 1;
-      $this->_rbo->setproperty('HID_PAGENO', $pageno, TRUE);
+      $this->_rbo->set('HID_PAGENO', $pageno, TRUE);
       if ($this->_rbo->callmethod('PageDisp') === FALSE) {
         $ret = FALSE;
       }
@@ -186,10 +186,10 @@ class uQuery implements \Iterator {
   }
 
   private function _setup() {
-    $this->_pageno = (string)$this->_rbo->getproperty('HID_PAGENO', TRUE);
-    $this->_maxitems = (string)$this->_rbo->getproperty('HID_MAX_ITEMS', TRUE);
-    $this->_position = $this->_fromitem = (string) $this->_rbo->getproperty('HID_FROM_ITEM', TRUE);
-    $this->_uptoitem = (string)$this->_rbo->getproperty('HID_UPTO_ITEM', TRUE);
-    $this->_pagesize = (string)$this->_rbo->getproperty('HID_PAGE_SIZE', TRUE);
+    $this->_pageno = (string)$this->_rbo->get('HID_PAGENO', TRUE);
+    $this->_maxitems = (string)$this->_rbo->get('HID_MAX_ITEMS', TRUE);
+    $this->_position = $this->_fromitem = (string) $this->_rbo->get('HID_FROM_ITEM', TRUE);
+    $this->_uptoitem = (string)$this->_rbo->get('HID_UPTO_ITEM', TRUE);
+    $this->_pagesize = (string)$this->_rbo->get('HID_PAGE_SIZE', TRUE);
   }
 }
