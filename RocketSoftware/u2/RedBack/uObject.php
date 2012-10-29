@@ -305,8 +305,7 @@ class uObject {
 
     // Check that there are no major errors.
     if (isset($this->_properties['HID_ERROR']) && $this->_properties['HID_ERROR'] > 0) {
-      $e = new \Exception($this->get('HID_ALERT', TRUE));
-      throw $e;
+      throw new \Exception($this->get('HID_ALERT', TRUE));
     }
 
     return $ret;
@@ -522,8 +521,7 @@ class uObject {
     $ret = $this->_callmethod($object);
 
     if (isset($this->_properties['HID_ERROR']) && $this->_properties['HID_ERROR'] > 0) {
-      $e = \Exception($this->_properties['HID_ALERT']['data']);
-      throw new $e;
+      throw new \Exception($this->_properties['HID_ALERT']['data']);
     }
 
     $this->RBOHandle = $this->_properties['HID_FORM_INST']['data'] .':' .$this->_properties['HID_USER']['data'];

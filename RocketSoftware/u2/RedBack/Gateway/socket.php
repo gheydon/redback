@@ -45,8 +45,7 @@ class Socket extends uObject {
     $result = @socket_connect($socket, $this->_url_parts['host'], $this->_url_parts['port']);
     if (!$result) {
       socket_close($socket);
-      $e = new \Exception("connecting to server failed, Reason: ($result) " . socket_strerror($result));
-      throw $e;
+      throw new \Exception("connecting to server failed, Reason: ($result) " . socket_strerror($result));
     }
     else {
       $header = sprintf("PATH_INFO\xfeRPVERSION\xfeHTTP_USER_AGENT\xfeQUERY_STRING\xfeSPIDER_VERSION");
@@ -83,8 +82,7 @@ class Socket extends uObject {
             else {
               $err = socket_last_error($socket);
               socket_close($socket);
-              $e = new \Exception("Error Reading from Server ($err) " . socket_strerror($err));
-              throw $e;
+              throw new \Exception("Error Reading from Server ($err) " . socket_strerror($err));
             }
           }
 
@@ -116,8 +114,7 @@ class Socket extends uObject {
 
       if ($err = socket_last_error($socket)) {
         socket_close($socket);
-        $e = new \Exception("Error Reading from Server ($err) " . socket_strerror($err));
-        throw $e;
+        throw new \Exception("Error Reading from Server ($err) " . socket_strerror($err));
         return FALSE;
       }
 
