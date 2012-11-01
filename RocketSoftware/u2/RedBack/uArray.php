@@ -109,7 +109,70 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
       }
     }
   }
+  
+  /**
+   * Insert value before delta
+   */
+  public function ins($value, $delta) {
+    if (is_numeric($delta) && $delta) {
+      if (isset($this->data[0])) {
+        $existing = $this->data[0];
+        unset($this->data);
 
+        $this->data[1] = new uArray($existing, $this, 1);
+      }
+      
+      $keys = array_filter(array_keys($this->data), function ($a) use ($delta) {
+        return $a <= $delta;
+      });
+      ksort($keys, SORT_NUMERIC);
+    
+      foreach (array_reverse($keys) as $key) {
+        $this->data[$key+1] = $this->data[$key];
+        $this->data[$key+1]->setDelta($key+1);
+        unset($this->data[$key]);
+      }
+      
+      $this->data[$delta] = new uArray($value, $this, $delta);
+    }
+    else if (!$delta) {
+      throw new \Exception('Can only delete positive keyed items in the array');
+    }
+    else {
+      throw new \Exception('There can be only numerical keyed items in the array');
+    }
+  }
+  
+  /**
+   * Delete a value from the array, and move all values up. Giving the same charactorisics as the PICK DEL command
+   */
+  public function del($delta) {
+    if (is_numeric($delta) && $delta) {
+      unset($this->data[$delta]);
+    
+      $keys = array_filter(array_keys($this->data), function ($a) use ($delta) {
+        return $a > $delta;
+      });
+      ksort($keys, SORT_NUMERIC);
+    
+      foreach ($keys as $key) {
+        $this->data[$key-1] = $this->data[$key];
+        $this->data[$key-1]->setDelta($key-1);
+        unset($this->data[$key]);
+      }
+    }
+    else if (!$delta) {
+      throw new \Exception('Can only delete positive keyed items in the array');
+    }
+    else {
+      throw new \Exception('There can be only numerical keyed items in the array');
+    }
+  }
+
+  public function setDelta($delta) {
+    $this->parent_delta = $delta;
+  }
+  
   public function updateParent($child, $delta) {
     // if there is a value in 0 move it to 1.
     if (isset($this->data[0])) {
