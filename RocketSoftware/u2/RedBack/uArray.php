@@ -116,7 +116,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
       $value = $this->data[0];
       unset($this->data);
 
-      $this->data[1] = new DB_RedBack_Array($value, $this, 1);
+      $this->data[1] = new uArray($value, $this, 1);
     }
 
     $this->data[$delta] = $child;
