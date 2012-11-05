@@ -214,7 +214,7 @@ class uObject {
       return $this->get($property);
     }
     else {
-      trigger_error(sprintf('Undefined property: %s::%s.', get_class($this), $property), E_USER_ERROR);
+      throw new \Exception(sprintf('Undefined property: %s::%s.', get_class($this), $property));
     }
   }
 
