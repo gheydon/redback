@@ -239,7 +239,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
   }
 
   public function valid() {
-    $max = isset($this->data[0]) ? 1 : max(array_keys($this->data));
+    $max = empty($this->data) ? 0 : (isset($this->data[0]) ? 1 : max(array_keys($this->data)));
     return $this->iterator_position <= $max;
   }
 }
