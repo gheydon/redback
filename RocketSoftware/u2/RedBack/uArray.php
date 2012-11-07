@@ -185,6 +185,16 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
     $this->data[$delta] = $child;
   }
 
+  public function getArrayCopy() {
+    $array = array();
+
+    for ($i = 1; $i <= $this->count(); $i++) {
+      $array[$i] = $this->get($i);
+    }
+
+    return $array;
+  }
+
   // As per how PICK handles this, in that doesn't exist is a NULL string.
   public function offsetExists($delta) {
     if ($delta === 0) {

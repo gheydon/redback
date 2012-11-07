@@ -28,6 +28,16 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
     throw new \Exception('__METHOD__ not implemented');
   }
 
+  public function getArrayCopy() {
+    $array = array();
+
+    for ($i = 1; $i <= $this->count(); $i++) {
+      $array[$i] = $this->get($i);
+    }
+
+    return $array;
+  }
+
   public function offsetExists($delta) {
     foreach ($this->fields as $fields) {
       $value = $this->uObject->get($field);
