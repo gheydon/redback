@@ -39,14 +39,34 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
   private $parent_delta = NULL;
   private $iterator_position = 1;
   private $data = array();
-  private $parent_type = AM;
+  private $parent_mark = AM;
+  private $delimiter_order = array(RB_TYPE_AM => AM, RB_TYPE_VM => VM, RB_TYPE_SV => SV);
+  
 
   public function __construct($value = NULL, $parent = NULL, $delta = NULL) {
     $this->parent = $parent;
     $this->parent_delta = $delta;
 
-    if ($value) {
-     $this->set($value);
+    // Get the parents value mark type and shift it down 1. i.e. AM => VM and throw an error if the parent mark is SV
+    if ($parent) {
+      $parent_mark = $parent->getParentMark();
+      
+      if (($mark_type = array_search($parent_mark, $this->delimiter_order)) !== FALSE) {
+        $mark_type++;
+        if (isset($this->delimiter_order[$mark_type])) {
+          $this->parent_mark = $this->delimiter_order[$mark_type];
+        }
+        else {
+          throw new \Exception('Array too many levels deep.');
+        }
+      }
+      else {
+        throw new \Exception('Parents Mark is not valid');
+      }
+    }
+
+    if (isset($value)) {
+      $this->set($value);
     }
   }
 
@@ -63,7 +83,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
     $data = $this->data + array_fill(1, max(array_keys($this->data)), '');
     ksort($data, SORT_NUMERIC);
 
-    return implode($this->parent_type, $data);
+    return implode($this->parent_mark, $data);
   }
 
   public function get($delta) {
@@ -83,13 +103,11 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
   }
 
   public function set($value) {
-    static $delimiter_order = array(RB_TYPE_AM => AM, RB_TYPE_VM => VM, RB_TYPE_SV => SV);
-
     if (is_scalar($value)) {
       $this->data = array(); // all data is cleared.
       $delmiter_found = FALSE;
       
-      foreach ($delimiter_order as $type => $char) {
+      foreach ($this->delimiter_order as $type => $char) {
        if (strpos($value, $char) !== FALSE) {
          $delmiter_found = $type;
          break;
@@ -97,13 +115,13 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
       }
       
       if ($delmiter_found !== FALSE) {
-        $this->parent_type = $delimiter_order[$delmiter_found];
+        $this->parent_mark = $this->delimiter_order[$delmiter_found];
       
-        foreach (explode($delimiter_order[$delmiter_found], $value) as $delta => $subvalue) {
-          $this->data[$delta+1] = new uArray($subvalue, $this);
+        foreach (explode($this->delimiter_order[$delmiter_found], $value) as $delta => $subvalue) {
+          $this->data[$delta+1] = new uArray($subvalue, $this, $delta+1);
         }
       }
-      elseif (!empty($value)) {
+      elseif (isset($value)) {
         $this->data[0] = $value;
       }
       
@@ -186,6 +204,8 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
     }
 
     $this->data[$delta] = $child;
+  public function getParentMark() {
+    return $this->parent_mark;
   }
 
   public function getArrayCopy() {
