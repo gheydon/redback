@@ -68,8 +68,11 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
 
   public function get($delta) {
     // In PICK 0 is a special in that it returns all values;
-    if ($delta === 0 || ($delta == 1 && isset($this->data[0]))) {
+    if ($delta === 0) {
       return $this;
+    }
+    elseif ($delta == 1 && isset($this->data[0])) {
+      return new uArray($this->data[0], $this, 1);
     }
     elseif (is_numeric($delta)) {
       return isset($this->data[$delta]) ? $this->data[$delta] : new uArray(NULL, $this, $delta);
