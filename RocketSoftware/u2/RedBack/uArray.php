@@ -129,6 +129,25 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
         $this->parent->updateParent($this, $this->parent_delta);
       }
     }
+    // If this is a standard PHP indexed array starting at 0 then insert each value into ::data as delta+1
+    else if (is_array($value)) {
+      $this->data = array(); // all data is cleared
+      $array = $value;
+      foreach ($array as $delta => $value) {
+        if (!is_numeric($delta)) {
+          throw new \Exception('There can be only numerical keyed items in the input array');
+        }
+        
+        $this->data[$delta+1] = new uArray($value, $this, $delta+1);
+      }
+      
+      if (!empty($this->data) && isset($this->parent) && isset($this->parent_delta)) {
+        $this->parent->updateParent($this, $this->parent_delta);
+      }
+    }
+    else {
+      throw new \Exception('Unsupported data type');
+    }
   }
   
   /**
