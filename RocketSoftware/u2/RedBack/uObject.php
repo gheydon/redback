@@ -338,7 +338,12 @@ class uObject {
       // process array of values to set
       foreach ($property as $k => $v) {
         if ($override || $this->checkAccess($k)) {
-          $this->_properties[$k]['data']->set($v);
+          if ($v instanceof uArray) {
+            $this->_properties[$k]['data'] = $v;
+          }
+          else {
+            $this->_properties[$k]['data']->set($v);
+          }
           $this->_properties[$k]['tainted'] = TRUE;
           $this->_tainted = TRUE;
         }
@@ -346,7 +351,12 @@ class uObject {
     }
     else {
       if ($override || $this->checkAccess($property)) {
-        $this->_properties[$property]['data']->set($value);
+        if ($value instanceof uArray) {
+          $this->_properties[$property]['data'] = $value;
+        }
+        else {
+          $this->_properties[$property]['data']->set($value);
+        }
         $this->_properties[$property]['tainted'] = TRUE;
         $this->_tainted = TRUE;
       }
