@@ -41,6 +41,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
   private $data = array();
   private $parent_mark = AM;
   private $delimiter_order = array(RB_TYPE_AM => AM, RB_TYPE_VM => VM, RB_TYPE_SV => SV);
+  private $allow_more_levels = TRUE;
   
 
   public function __construct($value = NULL, $parent = NULL, $delta = NULL) {
@@ -52,12 +53,12 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
       $parent_mark = $parent->getParentMark();
       
       if (($mark_type = array_search($parent_mark, $this->delimiter_order)) !== FALSE) {
-        $mark_type++;
-        if (isset($this->delimiter_order[$mark_type])) {
-          $this->parent_mark = $this->delimiter_order[$mark_type];
+        if (isset($this->delimiter_order[$mark_type+1])) {
+          $this->parent_mark = $this->delimiter_order[$mark_type+1];
         }
         else {
-          throw new \Exception('Array too many levels deep.');
+          $this->parent_mark = $this->delimiter_order[$mark_type]; // We are at the lowest level.
+          $this->allow_more_levels = FALSE;
         }
       }
       else {
@@ -115,6 +116,9 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
       }
       
       if ($delmiter_found !== FALSE) {
+        if (!$this->allow_more_levels) {
+          throw new \Exception('Too many levels created.');
+        }
         $this->parent_mark = $this->delimiter_order[$delmiter_found];
       
         foreach (explode($this->delimiter_order[$delmiter_found], $value) as $delta => $subvalue) {
@@ -131,6 +135,9 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
     }
     // If this is a standard PHP indexed array starting at 0 then insert each value into ::data as delta+1
     else if (is_array($value)) {
+      if (!$this->allow_more_levels) {
+        throw new \Exception('Too many levels created.');
+      }
       $this->data = array(); // all data is cleared
       $array = $value;
       foreach ($array as $delta => $value) {
