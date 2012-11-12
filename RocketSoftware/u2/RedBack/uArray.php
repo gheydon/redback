@@ -108,11 +108,24 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
       $this->data = array(); // all data is cleared.
       $delmiter_found = FALSE;
       
-      foreach ($this->delimiter_order as $type => $char) {
-       if (strpos($value, $char) !== FALSE) {
-         $delmiter_found = $type;
-         break;
-       }
+      if (strpbrk($value, AM . VM . SV)) { // This should be much quicker to check if a delimiter exists, but I still need to work out the highest delimiter.
+        if (!isset($this->parent)) { // We don't need to do this if this has a parent, as we will determine the parent mark from the parent object.
+          foreach ($this->delimiter_order as $type => $char) {
+            if (strpos($value, $char) !== FALSE) {
+              $delmiter_found = $type;
+              break;
+            }
+          }
+          
+          // we want the default to be a VM if there is a delimiter.
+          if ($delmiter_found !== FALSE && $delmiter_found > RB_TYPE_VM) {
+            $delmiter_found = RB_TYPE_VM;
+          }
+        }
+        else {
+          // Work out what the delimiter should be based upon the parent object.
+          $delmiter_found = 254 - (ord($this->getParentMark()));
+        }
       }
       
       if ($delmiter_found !== FALSE) {
