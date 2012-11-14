@@ -3,7 +3,7 @@ namespace RocketSoftware\u2\RedBack\Gateway;
 
 use RocketSoftware\u2\RedBack\uObject;
 use RocketSoftware\u2\RedBack\uQuery;
-use RocketSoftware\u2\RedBack\uArray
+use RocketSoftware\u2\RedBack\uArray;
 
 /**
  * Connection method to communicate directly with the RedBack Scheduler
