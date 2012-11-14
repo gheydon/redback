@@ -42,6 +42,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
   private $parent_mark = AM;
   private $delimiter_order = array(RB_TYPE_AM => AM, RB_TYPE_VM => VM, RB_TYPE_SV => SV);
   private $allow_more_levels = TRUE;
+  private $is_tainted = FALSE;
   
 
   public function __construct($value = NULL, $parent = NULL, $delta = NULL) {
@@ -68,6 +69,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
 
     if (isset($value)) {
       $this->set($value);
+      $this->resetTaintedFlag();
     }
   }
 
@@ -136,10 +138,12 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
       
         foreach (explode($this->delimiter_order[$delmiter_found], $value) as $delta => $subvalue) {
           $this->data[$delta+1] = new uArray($subvalue, $this, $delta+1);
+          $this->taintArray();
         }
       }
       elseif (isset($value)) {
         $this->data[0] = $value;
+        $this->taintArray();
       }
       
       if (!empty($this->data) && isset($this->parent) && isset($this->parent_delta)) {
@@ -159,6 +163,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
         }
         
         $this->data[$delta+1] = new uArray($value, $this, $delta+1);
+        $this->taintArray();
       }
       
       if (!empty($this->data) && isset($this->parent) && isset($this->parent_delta)) {
@@ -243,10 +248,23 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
     }
 
     $this->data[$delta] = $child;
+    $this->taintArray();
     
     if (!empty($this->data) && isset($this->parent) && isset($this->parent_delta)) {
       $this->parent->updateParent($this, $this->parent_delta);
     }
+  }
+  
+  public function resetTaintedFlag() {
+    $this->is_tainted = FALSE;
+  }
+  
+  public function isTainted() {
+    return $this->is_tainted;
+  }
+  
+  public function taintArray() {
+    $this->is_tainted = TRUE;
   }
   
   public function getParentMark() {
