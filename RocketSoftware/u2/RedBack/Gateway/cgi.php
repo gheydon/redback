@@ -7,29 +7,6 @@ use RocketSoftware\u2\RedBack\uQuery;
 use RocketSoftware\u2\RedBack\uArray;
 
 /**
- * RedBack Gateway for PHP
- *
- * Long description for file (if any)...
- *
- * PHP versions 5.3+
- *
- * LICENSE: This source file is subject to version 3.0 of the PHP license
- * that is available through the world-wide-web at the following URI:
- * http://www.php.net/license/3_0.txt.  If you did not receive a copy of
- * the PHP License and are unable to obtain it through the web, please
- * send a note to license@php.net so we can mail you a copy immediately.
- *
- * @category   DB
- * @package    RedBack
- * @author     Gordon Heydon <gordon@heydon.com.au>
- * @copyright  1997-2005 The PHP Group
- * @license    http://www.php.net/license/3_0.txt  PHP License 3.0
- * @version    CVS: $Id:$
- * @since      File available since Release 1.2.0
- * @deprecated File deprecated in Release 2.0.0
- */
-
-/**
  * Connection object which allows the access to the RedBack Schedular via
  * the CGI gateway
  *
