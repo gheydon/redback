@@ -120,7 +120,6 @@ class Socket extends uObject {
       if ($err = socket_last_error($socket)) {
         socket_close($socket);
         throw new \Exception("Error Reading from Server ($err) " . socket_strerror($err));
-        return FALSE;
       }
       
       if (!empty($notice)) {
@@ -129,7 +128,7 @@ class Socket extends uObject {
       }
 
       if (is_object($this->_logger)) {
-          $this->_logger->log(sprintf('%s duration %fms', $method, (microtime(TRUE) - $start_time) * 1000));
+        $this->_logger->log(sprintf('%s duration %fms', $method, (microtime(TRUE) - $start_time) * 1000));
       }
             
       if (array_key_exists('HID_FIELDNAMES', $this->_properties)) {
