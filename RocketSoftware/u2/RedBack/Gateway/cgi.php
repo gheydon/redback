@@ -63,11 +63,11 @@ class cgi extends uObject {
               $debug['rx'] .= $s;
             }
             if (preg_match('/^(.*)=(.*)/', $s, $match)) {
-              $this->_properties[$match[1]]['data'] = new RocketSoftware\u2\RedBack\uArray(urldecode($match[2]));
+              $this->_properties[$match[1]]['data'] = new uArray(urldecode($match[2]));
             }
           }
           if (array_key_exists('HID_FIELDNAMES', $this->_properties)) {
-            $ret = new RocketSoftware\u2\RedBack\uQuery($this);
+            $ret = new uQuery($this);
           }
           else {
             $ret = TRUE;
