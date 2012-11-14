@@ -51,6 +51,7 @@ class Socket extends uObject {
       $header = sprintf("PATH_INFO\xfeRPVERSION\xfeHTTP_USER_AGENT\xfeQUERY_STRING\xfeSPIDER_VERSION");
       $data = sprintf("/rbo/%s\xfe4.3.0.123\xferedback=1\xfe%s\xfe101", $method, $qs);
       $out = sprintf('%010d%s%010d%s', strlen($header), $header, strlen($data), $data);
+      $notice = '';
 
       if (is_object($this->_logger)) {
         $this->_logger->log(sprintf('%s %s', $method, $qs));
@@ -108,7 +109,11 @@ class Socket extends uObject {
             elseif ($this->_object == 'rboexplorer') {
               $this->_properties['RESPONSE']['data'] = $s;
             }
-          } 
+            /* This is most likely a notice from the server, so gather it up and throw an exception */
+            else {
+              $notice .= $s;
+            }
+          }
         }
       }
 
@@ -116,6 +121,11 @@ class Socket extends uObject {
         socket_close($socket);
         throw new \Exception("Error Reading from Server ($err) " . socket_strerror($err));
         return FALSE;
+      }
+      
+      if (!empty($notice)) {
+        //TODO: Work out why it is onlu getting some of the notice and not all of the notice.
+        throw new \Exception($notice);
       }
 
       if (is_object($this->_logger)) {
