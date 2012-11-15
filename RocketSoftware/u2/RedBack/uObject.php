@@ -41,6 +41,7 @@ if (!defined('AM')) {
  */
 class uObject {
 
+  private $connection;
   /**
    * In debug mode, communication data is stored here.
    *
@@ -92,10 +93,8 @@ class uObject {
    *
    * @access public
    */
-  public static function factory($handler, $url = '', $object = '', $user = NULL, $pass = NULL) {
-    $class  = '\\RocketSoftware\\u2\\RedBack\\Gateway\\' . $handler;
-
-    return new $class($url, $object, $user, $pass);
+  public static function factory($url = '', $object = '', $user = NULL, $pass = NULL, $debug = FALSE) {
+    return new uObject($url, $object, $user, $pass, $debug);
   }
 
   /**
@@ -140,8 +139,12 @@ class uObject {
       }
     }
 
-    if ($url && $object) {
-      $this->open($url, $object, $user, $pass);
+    if ($url) {
+      $this->connect($url);
+
+      if ($object) {
+        $this->open($object, $user, $pass);
+      }
     }
   }
 
@@ -231,6 +234,15 @@ class uObject {
     return $this->callmethod($method);
   }
 
+  public function connect($url) {
+    $connection = parse_url($url);
+    $class  = '\\RocketSoftware\\u2\\RedBack\\Gateway\\' . $connection['scheme'];
+    $this->connection = NULL;
+    $this->_properties = array();
+    
+    $this->connection = new $class($this, $url);
+  }
+  
   /**
    * This method will open a connection to the RBO and retrieve
    * the properties of the Object.
@@ -256,13 +268,18 @@ class uObject {
    *             authentication then an additional call the
    *             RedBack Scheduler will be made.
    */
-  public function open($url, $obj, $user = NULL, $pass = NULL) {
+  public function open($obj, $user = NULL, $pass = NULL) {
+    if (!$this->connection) {
+      throw new \Exception('No connection has been set up. Unable to open method');
+    }
+
     if ($user) {
-      if (!$this->_authorise($url, $obj, $user, $pass)) {
+      if (!$this->_authorise($obj, $user, $pass)) {
         return FALSE;
       }
     }
-    return $this->_open($url, $obj);
+
+    return $this->open_rbo($obj);
   }
 
   /*
@@ -273,7 +290,7 @@ class uObject {
    */
   public function close() {
     if ($this->RBOHandle && $this->_tainted) {
-      $this->_callmethod(',.Refresh()');
+      $this->connection->call(',.Refresh()');
     }
   }
 
@@ -301,7 +318,7 @@ class uObject {
    */
 
   public function callmethod($method) {
-    $ret = $this->_callmethod("{$this->_object},this.{$method}");
+    $ret = $this->connection->call("{$this->_object},this.{$method}");
 
     // Check that there are no major errors.
     if (isset($this->_properties['HID_ERROR']) && $this->_properties['HID_ERROR'] > 0) {
@@ -470,7 +487,7 @@ class uObject {
    */
 
   public function __getStats() {
-    if (is_array($this->_monitor_data)) {
+    if (is_array($this->connection->getStats())) {
       foreach ($this->_monitor_data as $k => $v) {
         if (isset($v['data'])) {
           $stats = array();
@@ -499,15 +516,12 @@ class uObject {
    * @deprecated Removed in favour of factory creation.
    * @access private
    */
-  protected $_comms_layer = '';
-  protected $_url_parts = '';
   protected $_object = '';
   protected $_properties = NULL;
   protected $_tainted = FALSE;
   protected $_debug_mode = FALSE;
   protected $_monitor = FALSE;
   protected $_monitor_data = NULL;
-  protected $_return_mode = 18;
   protected $_ini_parameters = array();
   protected $_logger = NULL;
 
@@ -515,27 +529,21 @@ class uObject {
    * Private Functions
    */
 
-  protected function _open($url, $object) {
-    $this->_url_parts = parse_url($url);
-    if (count($this->_url_parts) == 1) {
-      if (array_key_exists($this->_url_parts['path'], $this->_ini_parameters['Databases'])) {
-        $this->_url_parts = parse_url($this->_ini_parameters['Databases'][$this->_url_parts['path']]);
-      }
-    }
+  private function open_rbo($object) {
     if (preg_match("/\xfd/", $object)) {
       $handle = explode(':', $object);
-      $this->_properties['HID_FORM_INST']['data'] = new DB_RedBack_Array($handle[0]);
-      $this->_properties['HID_USER']['data'] = new DB_RedBack_Array($handle[1]);
+      $this->_properties['HID_FORM_INST']['data'] = new uArray($handle[0]);
+      $this->_properties['HID_USER']['data'] = new uArray($handle[1]);
       $object = ',.Refresh()';
     }
-    $ret = $this->_callmethod($object);
+    $ret = $this->connection->call($object);
 
     if (isset($this->_properties['HID_ERROR']) && $this->_properties['HID_ERROR'] > 0) {
       throw new \Exception($this->_properties['HID_ALERT']['data']);
     }
 
     $this->RBOHandle = $this->_properties['HID_FORM_INST']['data'] .':' .$this->_properties['HID_USER']['data'];
-    $this->_object = isset($this->_properties['HID_HANDLE']) ? $this->_properties['HID_HANDLE']['data'] : '';
+    $this->_object = isset($this->_properties['HID_HANDLE']) ? $this->_properties['HID_HANDLE']['data'] : ''; // TODO: Fix this so sRBO's will work.
     return $ret;
   }
 
@@ -562,9 +570,9 @@ class uObject {
     $this->_ini_parameters = $__RedBack_ini;
   }
 
-  protected function _authorise($url, $obj, $user, $pass) {
+  protected function _authorise($obj, $user, $pass) {
     $obj_parts = explode(':', $obj);
-    $this->_open($url, "{$obj_parts[0]}:RPLOGIN");
+    $this->open_rbo("{$obj_parts[0]}:RPLOGIN");
     $this->set('USERID', $user);
     $this->set('PASSWORD', $pass);
     if ($this->callmethod('ADOLogin')) {
@@ -579,11 +587,7 @@ class uObject {
     }
   }
 
-  protected function _callmethod($method) {
-    return FALSE;
-  }
-
-  protected function _build_data() {
+  public function formatData() {
     // create post data
     if ($this->_properties) {
       foreach ($this->_properties as $k => $v) {
@@ -603,9 +607,27 @@ class uObject {
     else {
       $data = 'redbeans=1';
     }
-    if ($this->_monitor) {
+    if ($this->isMonitoring()) {
       $data.= "&MONITOR=1";
     }
     return $data;
+  }
+  
+  public function isMonitoring() {
+    return $this->_monitor;
+  }
+  
+  public function isDebugging() {
+    return $this->_debug_mode;
+  }
+  
+  public function loadProperties($properties) {
+    foreach ($properties as $key => $value) {
+      $this->_properties[$key] = $value;
+    }
+  }
+  
+  public function getDebugData() {
+    return $this->connection->getDebug();
   }
 }

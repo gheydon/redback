@@ -2,6 +2,7 @@
 namespace RocketSoftware\u2\RedBack\Gateway;
 
 use RocketSoftware\u2\RedBack\uObject;
+use RocketSoftware\u2\RedBack\uConnection;
 use RocketSoftware\u2\RedBack\uQuery;
 use RocketSoftware\u2\RedBack\uArray;
 
@@ -10,16 +11,16 @@ use RocketSoftware\u2\RedBack\uArray;
  *
  * @package Connection
  */
-class Socket extends uObject {
+class Socket extends uConnection {
   /**
    * Communicate with a RedBack Schedular.
    */
-  protected function _callmethod($method) {
+  public function call($method) {
     $debug = array('tx' => '', 'rx' => '');
-    $qs = $this->_build_data();
+    $qs = $this->uObject->formatData();
 
     $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-    $result = @socket_connect($socket, $this->_url_parts['host'], $this->_url_parts['port']);
+    $result = @socket_connect($socket, $this->host, $this->port);
     if (!$result) {
       socket_close($socket);
       throw new \Exception("connecting to server failed, Reason: ($result) " . socket_strerror($result));
@@ -29,21 +30,22 @@ class Socket extends uObject {
       $data = sprintf("/rbo/%s\xfe4.3.0.123\xferedback=1\xfe%s\xfe101", $method, $qs);
       $out = sprintf('%010d%s%010d%s', strlen($header), $header, strlen($data), $data);
       $notice = '';
+      $properties = array();
 
-      if (is_object($this->_logger)) {
+      /* if (is_object($this->_logger)) {
         $this->_logger->log(sprintf('%s %s', $method, $qs));
         $start_time = microtime(TRUE);
-      }
+      } */
             
       socket_write($socket, $out);
       /*
        * set up debug information
        */
-      if ($this->_debug_mode) {
+      if ($this->uObject->isDebugging()) {
         $debug['tx'] = $out;
       }
       while ($length = socket_read($socket, 10, PHP_BINARY_READ)) {
-        if ($this->_debug_mode) {
+        if ($this->uObject->isDebugging()) {
           $debug['rx'] .= $length;
         }
         if (is_numeric($length) && intval($length) > 0) {
@@ -64,13 +66,14 @@ class Socket extends uObject {
             }
           }
 
-          if ($this->_debug_mode) {
+          if ($this->uObject->isDebugging()) {
             $debug['rx'] .= $s;
           }
+          //var_dump($s);
 
           // strip monitor data from stream
-          if ($this->_monitor && preg_match("/(\[BackEnd\]..*)$/s", $s, $match)) {
-            $this->_monitor_data[] = array('method' => $method, 'data' => preg_replace("/\x0d/", "\n", $match[1]));
+          if ($this->uObject->isMonitoring() && preg_match("/(\[BackEnd\]..*)$/s", $s, $match)) {
+            $this->monitorData[] = array('method' => $method, 'data' => preg_replace("/\x0d/", "\n", $match[1]));
             $s = preg_replace("/\[BackEnd\].*$/s", '', $s);
           }
                     
@@ -78,13 +81,13 @@ class Socket extends uObject {
             $s = substr($s, 1);
             if (preg_match_all('/^(.*?)=(.*?)$/m', $s, $match)) {
               foreach ($match[1] as $k => $v) {
-                $this->_properties[$match[1][$k]]['data'] = new uArray(urldecode($match[2][$k]));
+                $properties[$match[1][$k]]['data'] = new uArray(urldecode($match[2][$k]));
               }
             }
             /* If this is a rboexplorer object the add the
              * response to the RESPONSE property */
             elseif ($this->_object == 'rboexplorer') {
-              $this->_properties['RESPONSE']['data'] = $s;
+              $properties['RESPONSE']['data'] = $s;
             }
             /* This is most likely a notice from the server, so gather it up and throw an exception */
             else {
@@ -104,30 +107,31 @@ class Socket extends uObject {
         throw new \Exception($notice);
       }
 
-      if (is_object($this->_logger)) {
+      /* if (is_object($this->_logger)) {
         $this->_logger->log(sprintf('%s duration %fms', $method, (microtime(TRUE) - $start_time) * 1000));
-      }
+      } */
             
-      if (array_key_exists('HID_FIELDNAMES', $this->_properties)) {
+      if (array_key_exists('HID_FIELDNAMES', $properties)) {
         $ret = new uQuery($this);
         /*
          * In the ASP and IBM version on the Redback Gateway the MaxRows is
          * actually a virtual field that is created when a recordset is
          * returned. This behaviour is going to be duplicated.
          */
-        if (array_key_exists('HID_MAX_ITEMS', $this->_properties)) {
-          $this->_properties['MaxRows'] = $this->_properties['HID_MAX_ITEMS'];
+        if (array_key_exists('HID_MAX_ITEMS', $properties)) {
+          $properties['MaxRows'] = $properties['HID_MAX_ITEMS'];
         }
       }
       else {
-        $ret = array_key_exists('HID_ERROR', $this->_properties) ? FALSE : TRUE;
+        $ret = array_key_exists('HID_ERROR', $properties) ? FALSE : TRUE;
       }
     }
     socket_close($socket);
-    if ($this->_debug_mode) {
-        $this->__Debug_Data[] = $debug;
+    if ($this->uObject->isDebugging()) {
+      $this->debugData[] = $debug;
     }
     $this->_tainted = TRUE;
+    $this->uObject->loadProperties($properties);
     return $ret;
   }
 }

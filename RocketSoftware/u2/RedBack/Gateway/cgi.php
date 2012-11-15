@@ -12,16 +12,16 @@ use RocketSoftware\u2\RedBack\uArray;
  *
  * @package Connection
  */
-class cgi extends uObject {
+class cgi extends uConnection {
   /**
    * cgi connection method to allow the DB_RedBack to communicate with the
    * RedBack Scheduler.
    */
   protected function _callmethod($method) {
     $debug = array('tx' => '', 'rx' => '');
-    $data = $this->_build_data();
+    $qs = $this->uObject->formatData();
 
-    $fp = pfsockopen($this->_url_parts['host'], $this->_url_parts['port'] ? $this->_url_parts['port'] : 80, $errno, $errstr, 30);
+    $fp = pfsockopen($this->host, $this->port ? $this->port : 80, $errno, $errstr, 30);
     if (!$fp) {
       echo "$errstr ($errno)<br />\n";
     } else {
@@ -41,25 +41,25 @@ class cgi extends uObject {
       /*
        * set up debug information
        */
-      if ($this->_debug_mode) {
+       if ($this->uObject->isDebugging()) {
         $debug['tx'] = $out;
       }
 
       // strip monitor data from stream
-      if ($this->_monitor && preg_match("/(\[BackEnd\]..*)$/s", $s, $match)) {
+      if ($this->uObject->isMonitoring() && preg_match("/(\[BackEnd\]..*)$/s", $s, $match)) {
         $this->_monitor_data[] = array('method' => $method,'data' => preg_replace("/\x0d/", "\n", $match[1]));
         $s = preg_replace("/\[BackEnd\].*$/s", '', $s);
       }
 
       if (!feof($fp)) {
         $s = fgets($fp);
-        if ($this->_debug_mode) {
+        if ($this->uObject->isDebugging()) {
           $debug['rx'] .= $s;
         }
         if (preg_match('/^HTTP\/1.1 [12]00/', $s)) {
           while (!feof($fp)) {
             $s = fgets($fp);
-            if ($this->_debug_mode) {
+            if ($this->uObject->isDebugging()) {
               $debug['rx'] .= $s;
             }
             if (preg_match('/^(.*)=(.*)/', $s, $match)) {
@@ -82,10 +82,11 @@ class cgi extends uObject {
       }
     }
     fclose($fp);
-    if ($this->_debug_mode) {
-      $this->__Debug_Data[] = $debug;
+    if ($this->uObject->isDebugging()) {
+      $this->debugData[] = $debug;
     }
     $this->_tainted = FALSE;
+    $this->uObject->loadProperties($properties);
     return $ret;
   }
 }
