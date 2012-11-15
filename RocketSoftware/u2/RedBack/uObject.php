@@ -119,7 +119,7 @@ class uObject {
    *
    * @access public
    */
-  public function __construct($url = '', $object = '', $user = NULL, $pass = NULL) {
+  public function __construct($url = NULL, $object = NULL, $user = NULL, $pass = NULL, $debug = FALSE) {
     $this->_readini();
 
     if (array_key_exists('Parameters', $this->_ini_parameters)) {
@@ -138,6 +138,8 @@ class uObject {
         }
       }
     }
+    
+    $this->__setDebug($debug);
 
     if ($url) {
       $this->connect($url);
