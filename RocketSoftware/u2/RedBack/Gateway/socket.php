@@ -109,22 +109,7 @@ class Socket extends uConnection {
 
       /* if (is_object($this->_logger)) {
         $this->_logger->log(sprintf('%s duration %fms', $method, (microtime(TRUE) - $start_time) * 1000));
-      } */
-            
-      if (array_key_exists('HID_FIELDNAMES', $properties)) {
-        $ret = new uQuery($this);
-        /*
-         * In the ASP and IBM version on the Redback Gateway the MaxRows is
-         * actually a virtual field that is created when a recordset is
-         * returned. This behaviour is going to be duplicated.
-         */
-        if (array_key_exists('HID_MAX_ITEMS', $properties)) {
-          $properties['MaxRows'] = $properties['HID_MAX_ITEMS'];
-        }
-      }
-      else {
-        $ret = array_key_exists('HID_ERROR', $properties) ? FALSE : TRUE;
-      }
+        } */
     }
     socket_close($socket);
     if ($this->uObject->isDebugging()) {
@@ -132,6 +117,21 @@ class Socket extends uConnection {
     }
     $this->_tainted = TRUE;
     $this->uObject->loadProperties($properties);
+    
+    if (array_key_exists('HID_FIELDNAMES', $properties)) {
+      $ret = new uQuery($this->uObject);
+      /*
+       * In the ASP and IBM version on the Redback Gateway the MaxRows is
+       * actually a virtual field that is created when a recordset is
+       * returned. This behaviour is going to be duplicated.
+       */
+      if (array_key_exists('HID_MAX_ITEMS', $properties)) {
+        $properties['MaxRows'] = $properties['HID_MAX_ITEMS'];
+      }
+    }
+    else {
+      $ret = array_key_exists('HID_ERROR', $properties) ? FALSE : TRUE;
+    }
     return $ret;
   }
 }

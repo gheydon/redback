@@ -66,12 +66,7 @@ class cgi extends uConnection {
               $this->_properties[$match[1]]['data'] = new uArray(urldecode($match[2]));
             }
           }
-          if (array_key_exists('HID_FIELDNAMES', $this->_properties)) {
-            $ret = new uQuery($this);
-          }
-          else {
-            $ret = TRUE;
-          }
+          $ret = TRUE;
         }
         else {
           $ret = FALSE;
@@ -87,6 +82,11 @@ class cgi extends uConnection {
     }
     $this->_tainted = FALSE;
     $this->uObject->loadProperties($properties);
+    
+    if ($ret && array_key_exists('HID_FIELDNAMES', $this->_properties)) {
+      $ret = new uQuery($this->uObject);
+    }
+    
     return $ret;
   }
 }
