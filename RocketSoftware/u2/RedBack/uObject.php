@@ -430,8 +430,8 @@ class uObject {
   /**
    * Fetch an associated array of the defined fields
    */
-  public function fetchAssoc(array $fields) {
-    return new uAssocArray($this, $fields);
+  public function fetchAssoc() {
+    return new uAssocArray($this, func_get_args());
   }
   
   /**
