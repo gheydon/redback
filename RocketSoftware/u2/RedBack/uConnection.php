@@ -15,6 +15,7 @@ class uConnection implements uConnectionInterface {
   protected $port;
   protected $monitorData = array();
   protected $debugData = array();
+  protected $object;
   
   public function __construct($uObject, $url = NULL) {
     $this->uObject = $uObject;

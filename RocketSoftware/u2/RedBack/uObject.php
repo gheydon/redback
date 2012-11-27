@@ -545,7 +545,6 @@ class uObject {
     }
 
     $this->RBOHandle = $this->_properties['HID_FORM_INST']['data'] .':' .$this->_properties['HID_USER']['data'];
-    $this->_object = isset($this->_properties['HID_HANDLE']) ? $this->_properties['HID_HANDLE']['data'] : ''; // TODO: Fix this so sRBO's will work.
     return $ret;
   }
 

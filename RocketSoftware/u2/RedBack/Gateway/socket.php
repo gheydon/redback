@@ -86,7 +86,7 @@ class Socket extends uConnection {
             }
             /* If this is a rboexplorer object the add the
              * response to the RESPONSE property */
-            elseif ($this->_object == 'rboexplorer') {
+            elseif ($this->object == 'rboexplorer') {
               $properties['RESPONSE']['data'] = $s;
             }
             /* This is most likely a notice from the server, so gather it up and throw an exception */
@@ -116,6 +116,9 @@ class Socket extends uConnection {
       $this->debugData[] = $debug;
     }
     $this->_tainted = TRUE;
+    if (!isset($this->object)) {
+      $this->object = isset($properties['HID_HANDLE']) ? $properties['HID_HANDLE']['data'] : ''; // TODO: Fix this so sRBO's will work.
+    }
     $this->uObject->loadProperties($properties);
     
     if (array_key_exists('HID_FIELDNAMES', $properties)) {
