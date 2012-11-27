@@ -12,6 +12,8 @@ use RocketSoftware\u2\RedBack\uArray;
  * @package Connection
  */
 class Socket extends uConnection {
+  private $socket;
+
   /**
    * Communicate with a RedBack Schedular.
    */
@@ -19,10 +21,11 @@ class Socket extends uConnection {
     $debug = array('tx' => '', 'rx' => '');
     $qs = $this->uObject->formatData();
 
-    $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-    $result = @socket_connect($socket, $this->host, $this->port);
+    $this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+    $result = @socket_connect($this->socket, $this->host, $this->port);
     if (!$result) {
       socket_close($socket);
+      $this->socket = NULL;
       throw new \Exception("connecting to server failed, Reason: ($result) " . socket_strerror($result));
     }
     else {
@@ -37,81 +40,68 @@ class Socket extends uConnection {
         $start_time = microtime(TRUE);
       } */
             
-      socket_write($socket, $out);
+      socket_write($this->socket, $out);
       /*
        * set up debug information
        */
       if ($this->uObject->isDebugging()) {
         $debug['tx'] = $out;
       }
-      while ($length = socket_read($socket, 10, PHP_BINARY_READ)) {
-        if ($this->uObject->isDebugging()) {
-          $debug['rx'] .= $length;
+      while ($s = $this->getRXData($debug)) {
+        // strip monitor data from stream
+        if ($this->uObject->isMonitoring() && preg_match("/(\[BackEnd\]..*)$/s", $s, $match)) {
+          $this->monitorData[] = array('method' => $method, 'data' => preg_replace("/\x0d/", "\n", $match[1]));
+          $s = preg_replace("/\[BackEnd\].*$/s", '', $s);
         }
-        if (is_numeric($length) && intval($length) > 0) {
-          // because large packets will be split over multiple packets what
-          // would be good is to instead load a packet and then process all
-          // of the packet it can. This would be a little more memory
-          // efficent than building the whole string and then processing it.
-          $length = intval($length);
-          $s = '';
-          while ($length - strlen($s) > 0) {
-            if ($data = socket_read($socket, intval($length)-strlen($s), PHP_BINARY_READ)) {
-              $s.= $data;
-            }
-            else {
-              $err = socket_last_error($socket);
-              socket_close($socket);
-              throw new \Exception("Error Reading from Server ($err) " . socket_strerror($err));
-            }
-          }
-
-          if ($this->uObject->isDebugging()) {
-            $debug['rx'] .= $s;
-          }
-          //var_dump($s);
-
-          // strip monitor data from stream
-          if ($this->uObject->isMonitoring() && preg_match("/(\[BackEnd\]..*)$/s", $s, $match)) {
-            $this->monitorData[] = array('method' => $method, 'data' => preg_replace("/\x0d/", "\n", $match[1]));
-            $s = preg_replace("/\[BackEnd\].*$/s", '', $s);
-          }
                     
-          if (preg_match('/^N/', $s)) { // Only look at N type records
-            $s = substr($s, 1);
-            if (preg_match_all('/^(.*?)=(.*?)$/m', $s, $match)) {
-              foreach ($match[1] as $k => $v) {
-                $properties[$match[1][$k]]['data'] = new uArray(urldecode($match[2][$k]));
+        if (substr($s, 0, 1) == 'N') { // Only look at N type records
+          $s = substr($s, 1);
+          if (preg_match_all('/^(.*?)=(.*?)$/m', $s, $match)) {
+            foreach ($match[1] as $k => $v) {
+              $properties[$match[1][$k]]['data'] = new uArray(urldecode($match[2][$k]));
+            }
+          }
+          /* If this is a rboexplorer object the add the
+           * response to the RESPONSE property */
+          elseif ($this->object == 'rboexplorer') {
+            $properties['RESPONSE']['data'] = $s;
+          }
+          /* This is most likely a notice from the server, so gather it up and throw an exception */
+          else {
+            $notice = $s;
+            // We need to collect the rest of the notices, and since the server closes the socket we need to catch the error
+            try {
+              while ($s = $this->getRXData($debug)) {
+                if (substr($s, 0, 1) == 'N') {
+                  $notice .= substr($s, 1);
+                }
               }
             }
-            /* If this is a rboexplorer object the add the
-             * response to the RESPONSE property */
-            elseif ($this->object == 'rboexplorer') {
-              $properties['RESPONSE']['data'] = $s;
-            }
-            /* This is most likely a notice from the server, so gather it up and throw an exception */
-            else {
-              $notice .= $s;
+            catch (\Exception $e) {
+              // We don't care about this, but we need to hide it.
             }
           }
         }
       }
 
-      if ($err = socket_last_error($socket)) {
-        socket_close($socket);
-        throw new \Exception("Error Reading from Server ($err) " . socket_strerror($err));
-      }
-      
       if (!empty($notice)) {
-        //TODO: Work out why it is onlu getting some of the notice and not all of the notice.
+        socket_close($this->socket);
+        $this->socket = NULL;
         throw new \Exception($notice);
+      }
+
+      if ($err = socket_last_error($this->socket)) {
+        socket_close($this->socket);
+        $this->socket = NULL;
+        throw new \Exception("Error Reading from Server ($err) " . socket_strerror($err));
       }
 
       /* if (is_object($this->_logger)) {
         $this->_logger->log(sprintf('%s duration %fms', $method, (microtime(TRUE) - $start_time) * 1000));
         } */
     }
-    socket_close($socket);
+    socket_close($this->socket);
+    $this->socket = NULL;
     if ($this->uObject->isDebugging()) {
       $this->debugData[] = $debug;
     }
@@ -136,5 +126,38 @@ class Socket extends uConnection {
       $ret = array_key_exists('HID_ERROR', $properties) ? FALSE : TRUE;
     }
     return $ret;
+  }
+
+  private function getRXData(&$debug) {
+    if ($length = socket_read($this->socket, 10, PHP_BINARY_READ)) {
+      if ($this->uObject->isDebugging()) {
+        $debug['rx'] .= $length;
+      }
+      if (is_numeric($length) && intval($length) > 0) {
+        // because large packets will be split over multiple packets what
+        // would be good is to instead load a packet and then process all
+        // of the packet it can. This would be a little more memory
+        // efficent than building the whole string and then processing it.
+        $length = intval($length);
+        $s = '';
+        while ($length - strlen($s) > 0) {
+          if ($data = socket_read($this->socket, intval($length)-strlen($s), PHP_BINARY_READ)) {
+            $s.= $data;
+          }
+          else {
+            $err = socket_last_error($this->socket);
+            socket_close($socket);
+            $this->socket = NULL;
+            throw new \Exception("Error Reading from Server ($err) " . socket_strerror($err));
+          }
+        }
+
+        if ($this->uObject->isDebugging()) {
+          $debug['rx'] .= $s;
+        }
+        
+        return $s;
+      }
+    }
   }
 }
