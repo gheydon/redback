@@ -14,6 +14,10 @@ use RocketSoftware\u2\RedBack\uArray;
 class Socket extends uConnection {
   private $socket;
 
+  public function __destruct() {
+    $this->closeSocket();
+  }
+
   /**
    * Communicate with a RedBack Schedular.
    */
@@ -21,87 +25,83 @@ class Socket extends uConnection {
     $debug = array('tx' => '', 'rx' => '');
     $qs = $this->uObject->formatData();
 
-    $this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-    $result = @socket_connect($this->socket, $this->host, $this->port);
-    if (!$result) {
-      socket_close($socket);
-      $this->socket = NULL;
-      throw new \Exception("connecting to server failed, Reason: ($result) " . socket_strerror($result));
-    }
-    else {
-      $header = sprintf("PATH_INFO\xfeRPVERSION\xfeHTTP_USER_AGENT\xfeQUERY_STRING\xfeSPIDER_VERSION");
-      $data = sprintf("/rbo/%s\xfe4.3.0.123\xferedback=1\xfe%s\xfe101", $method, $qs);
-      $out = sprintf('%010d%s%010d%s', strlen($header), $header, strlen($data), $data);
-      $notice = '';
-      $properties = array();
+    $this->openSocket();
 
-      /* if (is_object($this->_logger)) {
-        $this->_logger->log(sprintf('%s %s', $method, $qs));
-        $start_time = microtime(TRUE);
-      } */
+    $header = sprintf("PATH_INFO\xfeRPVERSION\xfeHTTP_USER_AGENT\xfeQUERY_STRING\xfeSPIDER_VERSION");
+    $data = sprintf("/rbo/%s\xfe4.3.0.123\xferedback=1\xfe%s\xfe101", $method, $qs);
+    $out = sprintf('%010d%s%010d%s', strlen($header), $header, strlen($data), $data);
+    $notice = '';
+    $properties = array();
+
+    /* if (is_object($this->_logger)) {
+      $this->_logger->log(sprintf('%s %s', $method, $qs));
+      $start_time = microtime(TRUE);
+    } */
             
-      socket_write($this->socket, $out);
-      /*
-       * set up debug information
-       */
-      if ($this->uObject->isDebugging()) {
-        $debug['tx'] = $out;
+    @socket_write($this->socket, $out);
+    if ($err = socket_last_error($this->socket)) {
+      $this->closeSocket();
+      throw new \Exception("Error Writing to Server ($err) " . socket_strerror($err));
+    }
+
+    /*
+     * set up debug information
+     */
+    if ($this->uObject->isDebugging()) {
+      $debug['tx'] = $out;
+    }
+    while ($s = $this->getRXData($debug)) {
+      // strip monitor data from stream
+      if ($this->uObject->isMonitoring() && preg_match("/(\[BackEnd\]..*)$/s", $s, $match)) {
+        $this->monitorData[] = array('method' => $method, 'data' => preg_replace("/\x0d/", "\n", $match[1]));
+        $s = preg_replace("/\[BackEnd\].*$/s", '', $s);
       }
-      while ($s = $this->getRXData($debug)) {
-        // strip monitor data from stream
-        if ($this->uObject->isMonitoring() && preg_match("/(\[BackEnd\]..*)$/s", $s, $match)) {
-          $this->monitorData[] = array('method' => $method, 'data' => preg_replace("/\x0d/", "\n", $match[1]));
-          $s = preg_replace("/\[BackEnd\].*$/s", '', $s);
-        }
                     
-        if (substr($s, 0, 1) == 'N') { // Only look at N type records
-          $s = substr($s, 1);
-          if (preg_match_all('/^(.*?)=(.*?)$/m', $s, $match)) {
-            foreach ($match[1] as $k => $v) {
-              $properties[$match[1][$k]]['data'] = new uArray(urldecode($match[2][$k]));
-            }
+      if (substr($s, 0, 1) == 'N') { // Only look at N type records
+        $s = substr($s, 1);
+        if (preg_match_all('/^(.*?)=(.*?)$/m', $s, $match)) {
+          foreach ($match[1] as $k => $v) {
+            $properties[$match[1][$k]]['data'] = new uArray(urldecode($match[2][$k]));
           }
-          /* If this is a rboexplorer object the add the
-           * response to the RESPONSE property */
-          elseif ($this->object == 'rboexplorer') {
-            $properties['RESPONSE']['data'] = $s;
-          }
-          /* This is most likely a notice from the server, so gather it up and throw an exception */
-          else {
-            $notice = $s;
-            // We need to collect the rest of the notices, and since the server closes the socket we need to catch the error
-            try {
-              while ($s = $this->getRXData($debug)) {
-                if (substr($s, 0, 1) == 'N') {
-                  $notice .= substr($s, 1);
-                }
+        }
+        /* If this is a rboexplorer object the add the
+         * response to the RESPONSE property */
+        elseif ($this->object == 'rboexplorer') {
+          $properties['RESPONSE']['data'] = $s;
+        }
+        /* This is most likely a notice from the server, so gather it up and throw an exception */
+        else {
+          $notice = $s;
+          // We need to collect the rest of the notices, and since the server closes the socket we need to catch the error
+          try {
+            while ($s = $this->getRXData($debug)) {
+              if (substr($s, 0, 1) == 'N') {
+                $notice .= substr($s, 1);
               }
             }
-            catch (\Exception $e) {
-              // We don't care about this, but we need to hide it.
-            }
+          }
+          catch (\Exception $e) {
+            // We don't care about this, but we need to hide it.
           }
         }
       }
-
-      if (!empty($notice)) {
-        socket_close($this->socket);
-        $this->socket = NULL;
-        throw new \Exception($notice);
-      }
-
-      if ($err = socket_last_error($this->socket)) {
-        socket_close($this->socket);
-        $this->socket = NULL;
-        throw new \Exception("Error Reading from Server ($err) " . socket_strerror($err));
-      }
-
-      /* if (is_object($this->_logger)) {
-        $this->_logger->log(sprintf('%s duration %fms', $method, (microtime(TRUE) - $start_time) * 1000));
-        } */
     }
-    socket_close($this->socket);
-    $this->socket = NULL;
+
+    if (!empty($notice)) {
+      $this->closeSocket();
+      throw new \Exception($notice);
+    }
+
+    if ($err = socket_last_error($this->socket)) {
+      $this->closeSocket();
+      throw new \Exception("Error Reading from Server ($err) " . socket_strerror($err));
+    }
+
+    $this->closeSocket();
+
+    /* if (is_object($this->_logger)) {
+      $this->_logger->log(sprintf('%s duration %fms', $method, (microtime(TRUE) - $start_time) * 1000));
+      } */
     if ($this->uObject->isDebugging()) {
       $this->debugData[] = $debug;
     }
@@ -128,6 +128,24 @@ class Socket extends uConnection {
     return $ret;
   }
 
+  private function openSocket() {
+    if (!isset($this->socket)) {
+      $this->socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+      $result = @socket_connect($this->socket, $this->host, $this->port);
+      if (!$result) {
+        $this->closeSocket();
+        throw new \Exception("connecting to server failed, Reason: ($result) " . socket_strerror($result));
+      }
+    }
+  }
+  
+  private function closeSocket() {
+    if (isset($this->socket)) {
+      socket_close($this->socket);
+      $this->socket = NULL;
+    }
+  }
+  
   private function getRXData(&$debug) {
     if ($length = socket_read($this->socket, 10, PHP_BINARY_READ)) {
       if ($this->uObject->isDebugging()) {
@@ -146,8 +164,7 @@ class Socket extends uConnection {
           }
           else {
             $err = socket_last_error($this->socket);
-            socket_close($socket);
-            $this->socket = NULL;
+            $this->closeSocket();
             throw new \Exception("Error Reading from Server ($err) " . socket_strerror($err));
           }
         }
