@@ -50,7 +50,9 @@ class Socket extends uConnection {
     if ($this->uObject->isDebugging()) {
       $debug['tx'] = $out;
     }
+    $blocks = 0;
     while ($s = $this->getRXData($debug)) {
+      $blocks++;
       // strip monitor data from stream
       if ($this->uObject->isMonitoring() && preg_match("/(\[BackEnd\]..*)$/s", $s, $match)) {
         $this->monitorData[] = array('method' => $method, 'data' => preg_replace("/\x0d/", "\n", $match[1]));
@@ -85,6 +87,12 @@ class Socket extends uConnection {
           }
         }
       }
+    }
+    
+    if ($blocks == 0) {
+      // No response was given from the server.
+      $this->closeSocket();
+      throw new \Exception('No reponse from request.');
     }
 
     if (!empty($notice)) {
