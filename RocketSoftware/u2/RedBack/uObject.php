@@ -538,13 +538,20 @@ class uObject {
       $this->_properties['HID_USER']['data'] = new uArray($handle[1]);
       $object = ',.Refresh()';
     }
-    $ret = $this->connection->call($object);
+    try {
+      $ret = $this->connection->call($object);
+    }
+    catch (\Exception $e) {
+      // This is most likely due to a "No response" return which is generally a object which doesn't exists, so re-throw a more sensible error.
+      throw new \Exception('Unable to open RBO '. $object);
+    }
 
     if (isset($this->_properties['HID_ERROR']) && $this->_properties['HID_ERROR'] > 0) {
       throw new \Exception($this->_properties['HID_ALERT']['data']);
     }
 
-    $this->RBOHandle = $this->_properties['HID_FORM_INST']['data'] .':' .$this->_properties['HID_USER']['data'];
+    $this->RBOHandle = $this->_properties['HID_FORM_INST']['data'] . ':' . $this->_properties['HID_USER']['data'];
+
     return $ret;
   }
 
