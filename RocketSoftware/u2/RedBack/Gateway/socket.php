@@ -24,6 +24,7 @@ class Socket extends uConnection {
   public function call($method) {
     $debug = array('tx' => '', 'rx' => array());
     $qs = $this->uObject->formatData();
+    $rxheaders = array();
 
     $this->openSocket();
 
@@ -58,33 +59,34 @@ class Socket extends uConnection {
         $this->monitorData[] = array('method' => $method, 'data' => preg_replace("/\x0d/", "\n", $match[1]));
         $s = preg_replace("/\[BackEnd\].*$/s", '', $s);
       }
-                    
-      if (substr($s, 0, 1) == 'N') { // Only look at N type records
+
+      if (substr($s, 0, 1) == 'H') { // Process Headers
         $s = substr($s, 1);
-        if (preg_match_all('/^(.*?)=(.*?)$/m', $s, $match)) {
+
+        if (preg_match_all('/^(.*?): (.*?)$/m', $s, $match)) {
           foreach ($match[1] as $k => $v) {
-            $properties[$match[1][$k]]['data'] = new uArray(urldecode($match[2][$k]));
+            $rxheaders[$match[1][$k]] = $match[2][$k];
           }
         }
-        /* If this is a rboexplorer object the add the
-         * response to the RESPONSE property */
-        elseif ($this->object == 'rboexplorer') {
-          $properties['RESPONSE']['data'] = $s;
-        }
-        /* This is most likely a notice from the server, so gather it up and throw an exception */
-        else {
-          $notice = $s;
-          // We need to collect the rest of the notices, and since the server closes the socket we need to catch the error
-          try {
-            while ($s = $this->getRXData($debug)) {
-              if (substr($s, 0, 1) == 'N') {
-                $notice .= substr($s, 1);
-              }
+      }
+      elseif (substr($s, 0, 1) == 'N') { // Only look at N type records
+        $s = substr($s, 1);
+        if ($rxheaders['Content-type'] == 'text/xml') {
+          if (preg_match_all('/^(.*?)=(.*?)$/m', $s, $match)) {
+            foreach ($match[1] as $k => $v) {
+              $properties[$match[1][$k]]['data'] = new uArray(urldecode($match[2][$k]));
             }
           }
-          catch (\Exception $e) {
-            // We don't care about this, but we need to hide it.
+          // FIXME: Since I am now looking at the headers I most likely need to do this differently.
+          /* If this is a rboexplorer object the add the
+           * response to the RESPONSE property */
+          elseif ($this->object == 'rboexplorer') {
+            $properties['RESPONSE']['data'] = $s;
           }
+        }
+        /* Notices are in text/plain */
+        elseif ($rxheaders['Content-type'] == 'text/plain') {
+          $notice .= $s;
         }
       }
     }
