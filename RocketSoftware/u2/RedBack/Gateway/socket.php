@@ -22,7 +22,7 @@ class Socket extends uConnection {
    * Communicate with a RedBack Schedular.
    */
   public function call($method) {
-    $debug = array('tx' => '', 'rx' => '');
+    $debug = array('tx' => '', 'rx' => array());
     $qs = $this->uObject->formatData();
 
     $this->openSocket();
@@ -147,9 +147,12 @@ class Socket extends uConnection {
   }
   
   private function getRXData(&$debug) {
+    $rx = '';
     if ($length = socket_read($this->socket, 10, PHP_BINARY_READ)) {
+      $s = '';
+
       if ($this->uObject->isDebugging()) {
-        $debug['rx'] .= $length;
+        $rx .= $length;
       }
       if (is_numeric($length) && intval($length) > 0) {
         // because large packets will be split over multiple packets what
@@ -157,7 +160,6 @@ class Socket extends uConnection {
         // of the packet it can. This would be a little more memory
         // efficent than building the whole string and then processing it.
         $length = intval($length);
-        $s = '';
         while ($length - strlen($s) > 0) {
           if ($data = socket_read($this->socket, intval($length)-strlen($s), PHP_BINARY_READ)) {
             $s.= $data;
@@ -170,11 +172,14 @@ class Socket extends uConnection {
         }
 
         if ($this->uObject->isDebugging()) {
-          $debug['rx'] .= $s;
+          $rx .= $s;
         }
-        
-        return $s;
       }
+      if ($this->uObject->isDebugging()) {
+        $debug['rx'][] = $rx;
+      }
+
+      return $s;
     }
   }
 }
