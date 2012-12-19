@@ -431,7 +431,15 @@ class uObject {
    * Fetch an associated array of the defined fields
    */
   public function fetchAssoc() {
-    return new uAssocArray($this, func_get_args());
+    $fields = func_get_args();
+    $key = NULL;
+
+    if (is_array($fields[0])) {
+      $key = $fields[1];
+      $fields = $fields[0];
+    }
+
+    return new uAssocArray($this, $fields, $key);
   }
   
   /**

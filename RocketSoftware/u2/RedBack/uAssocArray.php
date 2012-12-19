@@ -7,20 +7,38 @@ use RocketSoftware\u2\RedBack\uAssocArrayItem;
 class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
   private $uObject = NULL;
   private $fields = array();
+  private $key_field = NULL;
   private $iterator_position = 0;
   
-  public function __construct($uObject, $fields) {
+  public function __construct($uObject, $fields, $key_field = NULL) {
     $this->uObject = $uObject;
     $this->fields = $fields;
+    $this->key_field = $key_field;
     
     foreach ($this->fields as $field) {
       if (!$this->uObject->checkAccess($field)) {
         throw new \Exception("{$field} is not a valid field");
       }
     }
+    
+    if ($key_field) {
+      if (!$this->uObject->checkAccess($key_field)) {
+        throw new \Exception("{$field} is not a valid field");
+      }
+    }
   }
   
   public function get($delta) {
+    if (isset($this->key_field)) {
+      $keys = $this->uObject->get($this->key_field);
+      
+      foreach ($keys as $pos => $value) {
+        if ((string)$value == $delta) {
+          return new uAssocArrayItem($this->uObject, $this->fields, $pos);
+        }
+      }
+      return new uAssocArrayItem($this->uObject, $this->fields, $this->count()+1);
+    }
     return new uAssocArrayItem($this->uObject, $this->fields, $delta);
   }
   
@@ -76,10 +94,15 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
   }
   
   public function current() {
-    return $this->get($this->iterator_position);
+    return $this->get($this->key());
   }
   
   public function key() {
+    if (isset($this->key_field)) {
+      $keys = $this->uObject->get($this->key_field);
+      
+      return (string)$keys[$this->iterator_position];
+    }
     return $this->iterator_position;
   }
   
