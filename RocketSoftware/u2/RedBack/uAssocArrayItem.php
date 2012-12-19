@@ -13,6 +13,10 @@ class uAssocArrayItem implements \ArrayAccess, \Iterator {
     $this->fields = $fields;
     $this->delta = $delta;
     
+    if (!is_numeric($delta)) {
+      throw new \Exception("{$delta} must be numeric");
+    }
+    
     foreach ($this->fields as $field) {
       if (!$this->uObject->checkAccess($field)) {
         throw new \Exception("{$field} is not a valid field");
