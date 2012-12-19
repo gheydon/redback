@@ -101,7 +101,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
       return isset($this->data[$delta]) ? $this->data[$delta] : new uArray(NULL, $this, $delta);
     }
     else {
-      throw new \Exception('There can be only numerical keyed items in the array');
+      throw new \Exception("There can be only numerical keyed items in the array [{$delta}]");
     }
   }
 
