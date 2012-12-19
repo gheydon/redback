@@ -6,7 +6,7 @@ use RocketSoftware\u2\RedBack\uAssocArrayItem;
 
 class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
   private $uObject = NULL;
-  private $feilds = array();
+  private $fields = array();
   private $iterator_position = 0;
   
   public function __construct($uObject, $fields) {
