@@ -32,10 +32,8 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
     if (isset($this->key_field)) {
       $keys = $this->uObject->get($this->key_field);
       
-      foreach ($keys as $pos => $value) {
-        if ((string)$value == $delta) {
-          return new uAssocArrayItem($this->uObject, $this->fields, $pos);
-        }
+      if (($pos = $this->keySearch($delta)) !== FALSE) {
+        return new uAssocArrayItem($this->uObject, $this->fields, $pos);
       }
       return new uAssocArrayItem($this->uObject, $this->fields, $this->count()+1);
     }
@@ -49,15 +47,27 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
   public function getArrayCopy() {
     $array = array();
 
-    for ($i = 1; $i <= $this->count(); $i++) {
-      $array[$i] = $this->get($i);
+    if (isset($this->key_field)) {
+      foreach ($this->getKeys() as $key => $delta) {
+        $array[$key] = $this->get($key);
+      }
+    }
+    else {
+      for ($i = 1; $i <= $this->count(); $i++) {
+        $array[$i] = $this->get($i);
+      }
     }
 
     return $array;
   }
 
   public function offsetExists($delta) {
-    foreach ($this->fields as $fields) {
+    if (isset($this->key_field)) {
+      if (($delta = $this->keySearch($delta)) === FALSE) {
+        return FALSE;
+      }
+    }
+    foreach ($this->fields as $field) {
       $value = $this->uObject->get($field);
       if (!empty($value[$delta])) {
         return TRUE;
@@ -75,6 +85,12 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
   }
   
   public function offsetUnset($delta) {
+    if (isset($this->key_field)) {
+      if ($delta = $this->keySearch($delta) === FALSE) {
+        return;
+      }
+    }
+
     foreach ($this->fields as $fields) {
       $value = $this->uObject->get($field);
       unset($value[$delta]);
@@ -107,7 +123,25 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
   }
   
   public function next() {
-    $this->iterator_position++;
+    if (isset($this->key_field)) {
+      $keys = $this->getKeys();
+      $key_values = array_values($keys);
+      if (($pos = array_search($this->iterator_position, $key_values)) !== FALSE) {
+        $pos++;
+        if (isset($key_values[$pos])) {
+          $this->iterator_position = $key_values[$pos];
+        }
+        else {
+          $this->iterator_position = $this->count()+1;
+        }
+      }
+      else {
+        $this->iterator_position = $this->count()+1;
+      }
+    }
+    else {
+      $this->iterator_position++;
+    }
   }
 
   public function rewind() {
@@ -116,5 +150,40 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
 
   public function valid() {
     return $this->iterator_position <= $this->count();
+  }
+
+  private function getKeys() {
+    $keys = (string)$this->uObject->get($this->key_field);
+    
+    foreach (array(RB_TYPE_AM => AM, RB_TYPE_VM => VM, RB_TYPE_SV => SV) as $type => $delimiter) {
+      if (strpos($keys, $delimiter) !== FALSE) {
+        break;
+      }
+    }
+    
+    $keys_array = explode($delimiter, $keys);
+    $keys_array = array_combine($keys_array, array_keys($keys_array));
+    $keys_array = array_map(function ($a) {
+      return $a+1;
+    }, $keys_array);
+        
+    return $keys_array;
+  }
+
+  private function keySearch($value) {
+    if (!isset($this->key_field)) {
+      if (is_numeric($value) && $value) {
+        return $value;
+      }
+      else if (!$delta) {
+        throw new \Exception('Can only delete positive keyed items in the array');
+      }
+      else {
+        throw new \Exception('There can be only numerical keyed items in the array');
+      }
+    }
+
+    $keys = $this->getKeys();
+    return isset($keys[(string)$value]) ? $keys[(string)$value] : FALSE;
   }
 }
