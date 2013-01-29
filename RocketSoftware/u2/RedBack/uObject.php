@@ -236,6 +236,20 @@ class uObject {
     return $this->callmethod($method);
   }
 
+  /**
+   * Allow check to see if a property isset.
+   */
+
+  public function __isset($property) {
+    if ($this->checkAccess($property)) {
+      $value = (string)$this->get($property);
+      return !empty($value);
+    }
+    else {
+      throw new \Exception(sprintf('Undefined property: %s::%s.', get_class($this), $property));
+    }
+  }
+
   public function connect($url) {
     $connection = parse_url($url);
     $class  = '\\RocketSoftware\\u2\\RedBack\\Gateway\\' . $connection['scheme'];
