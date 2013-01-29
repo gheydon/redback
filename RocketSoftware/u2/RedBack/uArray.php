@@ -284,7 +284,8 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
   // As per how PICK handles this, in that doesn't exist is a NULL string.
   public function offsetExists($delta) {
     if ($delta === 0) {
-      return !empty($this->data);
+      $value = (string)$this;
+      return !empty($value);
     }
     else {
       $value = (string)$this->get($delta);
