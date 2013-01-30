@@ -3,6 +3,8 @@
 namespace RocketSoftware\u2\RedBack;
 
 use \RocketSoftware\u2\RedBack\uQuery;
+use \RocketSoftware\u2\RedBack\uQueryItem;
+
 
 /**
  * Used for manipulate the RedBack uQuery Objects
@@ -105,20 +107,13 @@ class uQuery implements \Iterator {
    *               returned. If no property is specified
    *               then all properties will be returned in
    *               an array.
-   * @return array        an array which contains all the
+   * @return uQueryItem  an array which contains all the
    *               properties or just the requested
    *               property.
    */
   public function get($property = NULL) {
-    static $position, $arr;
-    if ($position != $this->_position) {
-      $arr = array();
-      $data = $this->_rbo->get('HID_ROW_' .(((string)$this->_position-$this->_fromitem)+1), TRUE);
-      foreach ($this->_fields as $k => $v) {
-        $arr[(string)$v] = $data[$k];
-      }
-    }
-    return $property ? $arr[$property] : $arr;
+    $item = new uQueryItem($this->_rbo, $this->_position);
+    return $property ? $item[$property] : $item;
   }
 
   /**
