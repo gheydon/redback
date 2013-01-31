@@ -38,7 +38,7 @@ class Socket extends uConnection {
       $this->_logger->log(sprintf('%s %s', $method, $qs));
       $start_time = microtime(TRUE);
     } */
-            
+
     @socket_write($this->socket, $out);
     if ($err = socket_last_error($this->socket)) {
       $this->closeSocket();
@@ -90,7 +90,7 @@ class Socket extends uConnection {
         }
       }
     }
-    
+
     if ($blocks == 0) {
       // No response was given from the server.
       $this->closeSocket();
@@ -120,7 +120,7 @@ class Socket extends uConnection {
       $this->object = isset($properties['HID_HANDLE']) ? $properties['HID_HANDLE']['data'] : ''; // TODO: Fix this so sRBO's will work.
     }
     $this->uObject->loadProperties($properties);
-    
+
     if (array_key_exists('HID_FIELDNAMES', $properties)) {
       $ret = new uQuery($this->uObject);
       /*
@@ -148,14 +148,14 @@ class Socket extends uConnection {
       }
     }
   }
-  
+
   private function closeSocket() {
     if (isset($this->socket)) {
       socket_close($this->socket);
       $this->socket = NULL;
     }
   }
-  
+
   private function getRXData(&$debug) {
     $rx = '';
     if ($length = socket_read($this->socket, 10, PHP_BINARY_READ)) {

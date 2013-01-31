@@ -10,29 +10,29 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
   private $fields = array();
   private $key_field = NULL;
   private $iterator_position = 0;
-  
+
   public function __construct(uAssocArraySource $source, $fields, $key_field = NULL) {
     $this->source = $source;
     $this->fields = $fields;
     $this->key_field = $key_field;
-    
+
     foreach ($this->fields as $field) {
       if (!$this->source->fieldExists($field)) {
         throw new \Exception("{$field} is not a valid field");
       }
     }
-    
+
     if ($key_field) {
       if (!$this->source->fieldExists($key_field)) {
         throw new \Exception("{$field} is not a valid field");
       }
     }
   }
-  
+
   public function get($delta) {
     if (isset($this->key_field)) {
       $keys = $this->source->get($this->key_field);
-      
+
       if (($pos = $this->keySearch($delta)) !== FALSE) {
         return new uAssocArrayItem($this->source, $this->fields, $pos);
       }
@@ -40,7 +40,7 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
     }
     return new uAssocArrayItem($this->source, $this->fields, $delta);
   }
-  
+
   public function set($value) {
     throw new \Exception('__METHOD__ not implemented');
   }
@@ -85,15 +85,15 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
     }
     return FALSE;
   }
-  
+
   public function offsetGet($delta) {
     return $this->get($delta);
   }
-  
+
   public function offsetSet($delta, $value) {
     $this->get($delta)->set($value);
   }
-  
+
   public function offsetUnset($delta) {
     if (isset($this->key_field)) {
       if ($delta = $this->keySearch($delta) === FALSE) {
@@ -106,32 +106,32 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
       unset($value[$delta]);
     }
   }
-  
+
   public function count() {
     $max = 0;
-    
+
     foreach ($this->fields as $field) {
       $count = count($this->source->get($field));
-      
+
       $max = $count > $max ? $count : $max;
     }
-    
+
     return $max;
   }
-  
+
   public function current() {
     return $this->get($this->key());
   }
-  
+
   public function key() {
     if (isset($this->key_field)) {
       $keys = $this->source->get($this->key_field);
-      
+
       return (string)$keys[$this->iterator_position];
     }
     return $this->iterator_position;
   }
-  
+
   public function next() {
     if (isset($this->key_field)) {
       $keys = $this->getKeys();
@@ -164,19 +164,19 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
 
   private function getKeys() {
     $keys = (string)$this->source->get($this->key_field);
-    
+
     foreach (array(RB_TYPE_AM => AM, RB_TYPE_VM => VM, RB_TYPE_SV => SV) as $type => $delimiter) {
       if (strpos($keys, $delimiter) !== FALSE) {
         break;
       }
     }
-    
+
     $keys_array = explode($delimiter, $keys);
     $keys_array = array_combine($keys_array, array_keys($keys_array));
     $keys_array = array_map(function ($a) {
       return $a+1;
     }, $keys_array);
-        
+
     return $keys_array;
   }
 

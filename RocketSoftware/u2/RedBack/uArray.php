@@ -43,7 +43,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
   private $delimiter_order = array(RB_TYPE_AM => AM, RB_TYPE_VM => VM, RB_TYPE_SV => SV);
   private $allow_more_levels = TRUE;
   private $is_tainted = FALSE;
-  
+
 
   public function __construct($value = NULL, $parent = NULL, $delta = NULL) {
     $this->parent = $parent;
@@ -52,7 +52,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
     // Get the parents value mark type and shift it down 1. i.e. AM => VM and throw an error if the parent mark is SV
     if ($parent) {
       $parent_mark = $parent->getParentMark();
-      
+
       if (($mark_type = array_search($parent_mark, $this->delimiter_order)) !== FALSE) {
         if (isset($this->delimiter_order[$mark_type+1])) {
           $this->parent_mark = $this->delimiter_order[$mark_type+1];
@@ -109,7 +109,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
     if (is_scalar($value)) {
       $this->data = array(); // all data is cleared.
       $delmiter_found = FALSE;
-      
+
       if (strpbrk($value, AM . VM . SV)) { // This should be much quicker to check if a delimiter exists, but I still need to work out the highest delimiter.
         if (!isset($this->parent)) { // We don't need to do this if this has a parent, as we will determine the parent mark from the parent object.
           foreach ($this->delimiter_order as $type => $char) {
@@ -118,7 +118,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
               break;
             }
           }
-          
+
           // we want the default to be a VM if there is a delimiter.
           if ($delmiter_found !== FALSE && $delmiter_found > RB_TYPE_VM) {
             $delmiter_found = RB_TYPE_VM;
@@ -129,13 +129,13 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
           $delmiter_found = 254 - (ord($this->getParentMark()));
         }
       }
-      
+
       if ($delmiter_found !== FALSE) {
         if (!$this->allow_more_levels) {
           throw new \Exception('Too many levels created.');
         }
         $this->parent_mark = $this->delimiter_order[$delmiter_found];
-      
+
         foreach (explode($this->delimiter_order[$delmiter_found], $value) as $delta => $subvalue) {
           $this->data[$delta+1] = new uArray($subvalue, $this, $delta+1);
           $this->taintArray();
@@ -145,7 +145,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
         $this->data[0] = $value;
         $this->taintArray();
       }
-      
+
       if (!empty($this->data) && isset($this->parent) && isset($this->parent_delta)) {
         $this->parent->updateParent($this, $this->parent_delta);
       }
@@ -161,11 +161,11 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
         if (!is_numeric($delta)) {
           throw new \Exception('There can be only numerical keyed items in the input array');
         }
-        
+
         $this->data[$delta+1] = new uArray($value, $this, $delta+1);
         $this->taintArray();
       }
-      
+
       if (!empty($this->data) && isset($this->parent) && isset($this->parent_delta)) {
         $this->parent->updateParent($this, $this->parent_delta);
       }
@@ -174,7 +174,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
       throw new \Exception('Unsupported data type');
     }
   }
-  
+
   /**
    * Insert value before delta
    */
@@ -186,18 +186,18 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
 
         $this->data[1] = new uArray($existing, $this, 1);
       }
-      
+
       $keys = array_filter(array_keys($this->data), function ($a) use ($delta) {
         return $a <= $delta;
       });
       ksort($keys, SORT_NUMERIC);
-    
+
       foreach (array_reverse($keys) as $key) {
         $this->data[$key+1] = $this->data[$key];
         $this->data[$key+1]->setDelta($key+1);
         unset($this->data[$key]);
       }
-      
+
       $this->data[$delta] = new uArray($value, $this, $delta);
     }
     else if (!$delta) {
@@ -207,19 +207,19 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
       throw new \Exception('There can be only numerical keyed items in the array');
     }
   }
-  
+
   /**
    * Delete a value from the array, and move all values up. Giving the same charactorisics as the PICK DEL command
    */
   public function del($delta) {
     if (is_numeric($delta) && $delta) {
       unset($this->data[$delta]);
-    
+
       $keys = array_filter(array_keys($this->data), function ($a) use ($delta) {
         return $a > $delta;
       });
       ksort($keys, SORT_NUMERIC);
-    
+
       foreach ($keys as $key) {
         $this->data[$key-1] = $this->data[$key];
         $this->data[$key-1]->setDelta($key-1);
@@ -237,7 +237,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
   public function setDelta($delta) {
     $this->parent_delta = $delta;
   }
-  
+
   public function updateParent($child, $delta) {
     // if there is a value in 0 move it to 1.
     if (isset($this->data[0])) {
@@ -249,24 +249,24 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
 
     $this->data[$delta] = $child;
     $this->taintArray();
-    
+
     if (!empty($this->data) && isset($this->parent) && isset($this->parent_delta)) {
       $this->parent->updateParent($this, $this->parent_delta);
     }
   }
-  
+
   public function resetTaintedFlag() {
     $this->is_tainted = FALSE;
   }
-  
+
   public function isTainted() {
     return $this->is_tainted;
   }
-  
+
   public function taintArray() {
     $this->is_tainted = TRUE;
   }
-  
+
   public function getParentMark() {
     return $this->parent_mark;
   }

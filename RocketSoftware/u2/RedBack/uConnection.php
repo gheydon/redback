@@ -16,15 +16,15 @@ class uConnection implements uConnectionInterface {
   protected $monitorData = array();
   protected $debugData = array();
   protected $object;
-  
+
   public function __construct($uObject, $url = NULL) {
     $this->uObject = $uObject;
-    
+
     if ($url) {
       $this->connect($url);
     }
   }
-  
+
   /**
    * Setup connection to the Redback server.
    */
@@ -33,15 +33,15 @@ class uConnection implements uConnectionInterface {
     $this->host = $connection['host'];
     $this->port = $connection['port'];
   }
-  
+
   public function call($method) {
     return FALSE;
   }
-  
+
   public function getStats() {
     return $this->monitorData;
   }
-  
+
   public function getDebug() {
     return $this->debugData;
   }

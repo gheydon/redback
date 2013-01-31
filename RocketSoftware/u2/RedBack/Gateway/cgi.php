@@ -85,11 +85,11 @@ class cgi extends uConnection {
       $this->object = isset($properties['HID_HANDLE']) ? $properties['HID_HANDLE']['data'] : ''; // TODO: Fix this so sRBO's will work.
     }
     $this->uObject->loadProperties($properties);
-    
+
     if ($ret && array_key_exists('HID_FIELDNAMES', $this->_properties)) {
       $ret = new uQuery($this->uObject);
     }
-    
+
     return $ret;
   }
 }
