@@ -45,6 +45,15 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
     throw new \Exception('__METHOD__ not implemented');
   }
 
+  public function search($needle, $field) {
+    foreach ($this as $key => $data) {
+      if ($data[$field] == $needle) {
+        return $key;
+      }
+    }
+    return FALSE;
+  }
+
   public function getArrayCopy() {
     $array = array();
 
