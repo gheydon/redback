@@ -5,6 +5,7 @@ namespace RocketSoftware\u2\RedBack;
 use RocketSoftware\u2\RedBack\Gateway\cgi;
 use RocketSoftware\u2\RedBack\Gateway\Socket;
 use RocketSoftware\u2\RedBack\uAssocArray;
+use RocketSoftware\u2\RedBack\uAssocArraySource;
 
 /*
  * The values are normally defined here but if RocketSoftware\u2\Redback\uArray.php is loaded first then it will be defined there.
@@ -39,7 +40,7 @@ if (!defined('AM')) {
  *
  * @package RocketSoftware\u2\RedBack\uObject
  */
-class uObject {
+class uObject implements uAssocArraySource {
 
   private $connection;
   /**

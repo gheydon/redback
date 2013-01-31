@@ -3,8 +3,9 @@
 namespace RocketSoftware\u2\RedBack;
 
 use RocketSoftware\u2\RedBack\uObject;
+use RocketSoftware\u2\RedBack\uAssocArraySource;
 
-class uQueryItem Implements \ArrayAccess {
+class uQueryItem Implements \ArrayAccess, uAssocArraySource {
   private $uObject = NULL;
   private $data = NULL;
   private $fields = NULL;
@@ -22,6 +23,32 @@ class uQueryItem Implements \ArrayAccess {
     
     $this->data = $this->uObject->get('HID_ROW_' . (((string)$position - $from)+1), TRUE);
   }
+
+  public function fieldExists($field) {
+    return $this->offsetExists($field);
+  }
+
+  public function get($delta) {
+    if ($this->offsetExists($delta)) {
+      return $this->data[$this->fields[$delta]];
+    }
+    return FALSE;
+  }
+
+  /**
+   * Fetch an associated array of the defined fields
+   */
+  public function fetchAssoc() {
+    $fields = func_get_args();
+    $key = NULL;
+
+    if (is_array($fields[0])) {
+      $key = $fields[1];
+      $fields = $fields[0];
+    }
+
+    return new uAssocArray($this, $fields, $key);
+  }
   
   public function offsetExists($delta) {
     return array_key_exists($delta, $this->fields);
@@ -29,7 +56,7 @@ class uQueryItem Implements \ArrayAccess {
   
   public function offsetGet($delta) {
     if ($this->offsetExists($delta)) {
-      return $this->data[$this->fields[$delta]];
+      return $this->get($delta);
     }
     throw new \Exception('Field '. $delta . ' doesn\'t exist.');
   }

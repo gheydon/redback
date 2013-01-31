@@ -3,26 +3,27 @@
 namespace RocketSoftware\u2\RedBack;
 
 use RocketSoftware\u2\RedBack\uAssocArrayItem;
+use RocketSoftware\u2\RedBack\uAssocArraySource;
 
 class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
-  private $uObject = NULL;
+  private $source = NULL;
   private $fields = array();
   private $key_field = NULL;
   private $iterator_position = 0;
   
-  public function __construct($uObject, $fields, $key_field = NULL) {
-    $this->uObject = $uObject;
+  public function __construct(uAssocArraySource $source, $fields, $key_field = NULL) {
+    $this->source = $source;
     $this->fields = $fields;
     $this->key_field = $key_field;
     
     foreach ($this->fields as $field) {
-      if (!$this->uObject->checkAccess($field)) {
+      if (!$this->source->fieldExists($field)) {
         throw new \Exception("{$field} is not a valid field");
       }
     }
     
     if ($key_field) {
-      if (!$this->uObject->checkAccess($key_field)) {
+      if (!$this->source->fieldExists($key_field)) {
         throw new \Exception("{$field} is not a valid field");
       }
     }
@@ -30,14 +31,14 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
   
   public function get($delta) {
     if (isset($this->key_field)) {
-      $keys = $this->uObject->get($this->key_field);
+      $keys = $this->source->get($this->key_field);
       
       if (($pos = $this->keySearch($delta)) !== FALSE) {
-        return new uAssocArrayItem($this->uObject, $this->fields, $pos);
+        return new uAssocArrayItem($this->source, $this->fields, $pos);
       }
-      return new uAssocArrayItem($this->uObject, $this->fields, $this->count()+1);
+      return new uAssocArrayItem($this->source, $this->fields, $this->count()+1);
     }
-    return new uAssocArrayItem($this->uObject, $this->fields, $delta);
+    return new uAssocArrayItem($this->source, $this->fields, $delta);
   }
   
   public function set($value) {
@@ -68,7 +69,7 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
       }
     }
     foreach ($this->fields as $field) {
-      $value = $this->uObject->get($field);
+      $value = $this->source->get($field);
       if (!empty($value[$delta])) {
         return TRUE;
       }
@@ -92,7 +93,7 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
     }
 
     foreach ($this->fields as $fields) {
-      $value = $this->uObject->get($field);
+      $value = $this->source->get($field);
       unset($value[$delta]);
     }
   }
@@ -101,7 +102,7 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
     $max = 0;
     
     foreach ($this->fields as $field) {
-      $count = count($this->uObject->get($field));
+      $count = count($this->source->get($field));
       
       $max = $count > $max ? $count : $max;
     }
@@ -115,7 +116,7 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
   
   public function key() {
     if (isset($this->key_field)) {
-      $keys = $this->uObject->get($this->key_field);
+      $keys = $this->source->get($this->key_field);
       
       return (string)$keys[$this->iterator_position];
     }
@@ -153,7 +154,7 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
   }
 
   private function getKeys() {
-    $keys = (string)$this->uObject->get($this->key_field);
+    $keys = (string)$this->source->get($this->key_field);
     
     foreach (array(RB_TYPE_AM => AM, RB_TYPE_VM => VM, RB_TYPE_SV => SV) as $type => $delimiter) {
       if (strpos($keys, $delimiter) !== FALSE) {

@@ -2,14 +2,16 @@
 
 namespace RocketSoftware\u2\RedBack;
 
+use RocketSoftware\u2\RedBack\uAssocArraySource;
+
 class uAssocArrayItem implements \ArrayAccess, \Iterator {
-  private $uObject = NULL;
+  private $source = NULL;
   private $fields = array();
   private $delta = NULL;
   private $current_field;
   
-  public function __construct($uObject, $fields, $delta) {
-    $this->uObject = $uObject;
+  public function __construct(uAssocArraySource $source, $fields, $delta) {
+    $this->source = $source;
     $this->fields = $fields;
     $this->delta = $delta;
     
@@ -18,7 +20,7 @@ class uAssocArrayItem implements \ArrayAccess, \Iterator {
     }
     
     foreach ($this->fields as $field) {
-      if (!$this->uObject->checkAccess($field)) {
+      if (!$this->source->fieldExists($field)) {
         throw new \Exception("{$field} is not a valid field");
       }
     }
@@ -29,7 +31,7 @@ class uAssocArrayItem implements \ArrayAccess, \Iterator {
     if (!in_array($field, $this->fields)) {
       throw new \Exception("{$field} is not a valid field");
     }
-    $value = $this->uObject->get($field);
+    $value = $this->source->get($field);
     return $value[$this->delta];
   }
   
@@ -42,7 +44,7 @@ class uAssocArrayItem implements \ArrayAccess, \Iterator {
       throw new \Exception("{$field} is not a valid field");
     }
 
-    $value = $this->uObject->get($field);
+    $value = $this->source->get($field);
     if (!empty($value[$this->delta])) {
       return TRUE;
     }
@@ -70,7 +72,7 @@ class uAssocArrayItem implements \ArrayAccess, \Iterator {
       throw new \Exception("{$field} is not a valid field");
     }
 
-    $value = $this->uObject->get($field);
+    $value = $this->source->get($field);
     unset($value[$this->delta]);
   }
   
