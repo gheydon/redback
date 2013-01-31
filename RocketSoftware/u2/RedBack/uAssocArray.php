@@ -91,7 +91,7 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
   }
   
   public function offsetSet($delta, $value) {
-    //$this->get($delta)->set($value);
+    $this->get($delta)->set($value);
   }
   
   public function offsetUnset($delta) {
