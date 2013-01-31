@@ -191,7 +191,7 @@ class uObject {
    * @access public
    */
   public function __set($property, $value) {
-    if ($this->checkAccess($property)) {
+    if ($this->fieldExists($property)) {
       $this->set($property, $value);
     }
     else {
@@ -215,7 +215,7 @@ class uObject {
    */
 
   public function __get($property) {
-    if ($this->checkAccess($property)) {
+    if ($this->fieldExists($property)) {
       return $this->get($property);
     }
     else {
@@ -241,7 +241,7 @@ class uObject {
    */
 
   public function __isset($property) {
-    if ($this->checkAccess($property)) {
+    if ($this->fieldExists($property)) {
       $value = (string)$this->get($property);
       return !empty($value);
     }
@@ -370,7 +370,7 @@ class uObject {
     if (is_array($property)) {
       // process array of values to set
       foreach ($property as $k => $v) {
-        if ($override || $this->checkAccess($k)) {
+        if ($override || $this->fieldExists($k)) {
           if ($v instanceof uArray) {
             $this->_properties[$k]['data'] = $v;
           }
@@ -383,7 +383,7 @@ class uObject {
       }
     }
     else {
-      if ($override || $this->checkAccess($property)) {
+      if ($override || $this->fieldExists($property)) {
         if ($value instanceof uArray) {
           $this->_properties[$property]['data'] = $value;
         }
@@ -413,7 +413,7 @@ class uObject {
    */
 
   public function get($property, $override = FALSE) {
-    if (array_key_exists($property, $this->_properties) && $override || $this->checkAccess($property)) {
+    if (array_key_exists($property, $this->_properties) && $override || $this->fieldExists($property)) {
       return $this->_properties[$property]['data'];
     }
     return FALSE;
@@ -422,7 +422,7 @@ class uObject {
   /**
    * Check the the fields exist and are accessible.
    */
-  public function checkAccess($property) {
+  public function fieldExists($property) {
     if (array_key_exists($property, $this->_properties)) {
       if ($this->_debug_mode) {
         return TRUE;
