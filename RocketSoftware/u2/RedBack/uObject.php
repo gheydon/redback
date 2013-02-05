@@ -139,7 +139,7 @@ class uObject implements uAssocArraySource {
         }
       }
     }
-    
+
     $this->__setDebug($debug);
 
     if ($url) {
@@ -256,10 +256,10 @@ class uObject implements uAssocArraySource {
     $class  = '\\RocketSoftware\\u2\\RedBack\\Gateway\\' . $connection['scheme'];
     $this->connection = NULL;
     $this->_properties = array();
-    
+
     $this->connection = new $class($this, $url);
   }
-  
+
   /**
    * This method will open a connection to the RBO and retrieve
    * the properties of the Object.
@@ -441,7 +441,7 @@ class uObject implements uAssocArraySource {
       return FALSE;
     }
   }
-  
+
   /**
    * Fetch an associated array of the defined fields
    */
@@ -456,7 +456,7 @@ class uObject implements uAssocArraySource {
 
     return new uAssocArray($this, $fields, $key);
   }
-  
+
   /**
    * Return an array of all the errors that have been set.
    *
@@ -506,7 +506,7 @@ class uObject implements uAssocArraySource {
   public function __setDebug($mode = NULL) {
     $this->_debug_mode = $mode !== NULL ? $this->_debug_mode = $mode : ($this->_debug_mode ? FALSE : TRUE);
   }
-  
+
   /**
    * Returns all the statistical data from the RedBack monitor.
    */
@@ -643,21 +643,21 @@ class uObject implements uAssocArraySource {
     }
     return $data;
   }
-  
+
   public function isMonitoring() {
     return $this->_monitor;
   }
-  
+
   public function isDebugging() {
     return $this->_debug_mode;
   }
-  
+
   public function loadProperties($properties) {
     foreach ($properties as $key => $value) {
       $this->_properties[$key] = $value;
     }
   }
-  
+
   public function getDebugData() {
     return $this->connection->getDebug();
   }
