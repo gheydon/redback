@@ -130,7 +130,13 @@ class uQuery implements \Iterator {
    * last row of the recordset.
    */
   public function eof() {
-    return $this->_position > $this->_maxitems ? TRUE : FALSE;
+    if (!$this->_maxitems) {
+      return TRUE;
+    }
+    else if ($this->_position > $this->_maxitems) {
+      return TRUE;
+    }
+    return FALSE;
   }
 
   /**
@@ -163,6 +169,7 @@ class uQuery implements \Iterator {
 
   private function _goto($position) {
     if ($position > $this->_maxitems || $position < 1) {
+      $this->_position = 0; // Set to an invalid position
       return FALSE;
     }
     $ret = TRUE;
@@ -183,7 +190,7 @@ class uQuery implements \Iterator {
   private function _setup() {
     $this->_pageno = (string)$this->_rbo->get('HID_PAGENO', TRUE);
     $this->_maxitems = (string)$this->_rbo->get('HID_MAX_ITEMS', TRUE);
-    $this->_position = $this->_fromitem = (string) $this->_rbo->get('HID_FROM_ITEM', TRUE);
+    $this->_position = $this->_fromitem = ((string)$this->_rbo->get('HID_FROM_ITEM', TRUE) + 1);
     $this->_uptoitem = (string)$this->_rbo->get('HID_UPTO_ITEM', TRUE);
     $this->_pagesize = (string)$this->_rbo->get('HID_PAGE_SIZE', TRUE);
   }
