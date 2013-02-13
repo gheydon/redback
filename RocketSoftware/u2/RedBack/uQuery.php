@@ -169,7 +169,6 @@ class uQuery implements \Iterator {
 
   private function _goto($position) {
     if ($position > $this->_maxitems || $position < 1) {
-      $this->_position = 0; // Set to an invalid position
       return FALSE;
     }
     $ret = TRUE;
