@@ -196,7 +196,7 @@ class uObject implements uAssocArraySource {
       $this->set($property, $value);
     }
     else {
-      trigger_error(sprintf('Undefined property: %s::%s.', get_class($this), $property), E_USER_ERROR);
+      throw new \Exception(sprintf('Undefined property: %s::%s.', get_class($this), $property));
     }
   }
 
@@ -395,7 +395,7 @@ class uObject implements uAssocArraySource {
         $this->_tainted = TRUE;
       }
       else {
-        trigger_error(sprintf('Undefined property: %s::%s.', get_class($this), $property), E_USER_ERROR);
+        throw new \Exception(sprintf('Undefined property: %s::%s.', get_class($this), $property));
       }
     }
   }
