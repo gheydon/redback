@@ -337,7 +337,10 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
     if (empty($this->data)) {
       return 0;
     }
-    if ($max = max(array_keys($this->data))) {
+    if ($this->needs_exploding) {
+      return substr_count($this->data[0], $this->parent_mark) + 1;
+    }
+    elseif ($max = max(array_keys($this->data))) {
       return $max;
     }
     else {
