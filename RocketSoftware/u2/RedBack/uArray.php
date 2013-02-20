@@ -75,11 +75,12 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
 
   public function __toString() {
     if (!isset($this->output)) {
+      // Don't cache the first 2 as it is not worth it.
       if (empty($this->data)) {
-        $this->output = '';
+        return '';
       }
       else if (isset($this->data[0])) {
-        $this->output = (string)$this->data[0];
+        return (string)$this->data[0];
       }
       else {
         // Add in all the blanks and get the values in the right order.
@@ -89,7 +90,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
         $this->output = implode($this->parent_mark, $data);
       }
     }
-    
+
     return $this->output;
   }
 
