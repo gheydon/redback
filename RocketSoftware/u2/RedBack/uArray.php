@@ -43,9 +43,10 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
   private $delimiter_order = array(RB_TYPE_AM => AM, RB_TYPE_VM => VM, RB_TYPE_SV => SV);
   private $allow_more_levels = TRUE;
   private $is_tainted = FALSE;
+  private $needs_exploding = FALSE;
   private $output = NULL;
 
-  public function __construct($value = NULL, $parent = NULL, $delta = NULL) {
+  public function __construct($value = NULL, $parent = NULL, $delta = NULL, $taint_parent = TRUE) {
     $this->parent = $parent;
     $this->parent_delta = $delta;
 
@@ -68,7 +69,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
     }
 
     if (isset($value)) {
-      $this->set($value);
+      $this->set($value, $taint_parent);
       $this->resetTaintedFlag();
     }
   }
@@ -99,10 +100,11 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
     if ($delta === 0) {
       return $this;
     }
-    elseif ($delta == 1 && isset($this->data[0])) {
+    elseif ($delta == 1 && isset($this->data[0]) && !$this->needs_exploding) {
       return new uArray($this->data[0], $this, 1);
     }
     elseif (is_numeric($delta)) {
+      $this->explode_array();
       return isset($this->data[$delta]) ? $this->data[$delta] : new uArray(NULL, $this, $delta);
     }
     else {
@@ -110,7 +112,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
     }
   }
 
-  public function set($value) {
+  public function set($value, $taint_parent = TRUE) {
     if (is_scalar($value)) {
       $this->data = array(); // all data is cleared.
       $delmiter_found = FALSE;
@@ -139,12 +141,11 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
         if (!$this->allow_more_levels) {
           throw new \Exception('Too many levels created.');
         }
+        
         $this->parent_mark = $this->delimiter_order[$delmiter_found];
-
-        foreach (explode($this->delimiter_order[$delmiter_found], $value) as $delta => $subvalue) {
-          $this->data[$delta+1] = new uArray($subvalue, $this, $delta+1);
-          $this->taintArray();
-        }
+        $this->data[0] = $value;
+        $this->taintArray();
+        $this->needs_exploding = TRUE;
       }
       elseif (isset($value)) {
         $this->data[0] = $value;
@@ -153,7 +154,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
 
       $this->output = NULL;
       if (!empty($this->data) && isset($this->parent) && isset($this->parent_delta)) {
-        $this->parent->updateParent($this, $this->parent_delta);
+        $this->parent->updateParent($this, $this->parent_delta, $taint_parent);
       }
     }
     // If this is a standard PHP indexed array starting at 0 then insert each value into ::data as delta+1
@@ -174,7 +175,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
 
       $this->output = NULL;
       if (!empty($this->data) && isset($this->parent) && isset($this->parent_delta)) {
-        $this->parent->updateParent($this, $this->parent_delta);
+        $this->parent->updateParent($this, $this->parent_delta, $taint_parent);
       }
     }
     else {
@@ -187,6 +188,8 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
    */
   public function ins($value, $delta) {
     if (is_numeric($delta) && $delta) {
+      $this->explode_array();
+
       if (isset($this->data[0])) {
         $existing = $this->data[0];
         unset($this->data);
@@ -219,6 +222,8 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
    * Delete a value from the array, and move all values up. Giving the same charactorisics as the PICK DEL command
    */
   public function del($delta) {
+    $this->explode_array();
+
     if (is_numeric($delta) && $delta) {
       unset($this->data[$delta]);
 
@@ -245,7 +250,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
     $this->parent_delta = $delta;
   }
 
-  public function updateParent($child, $delta) {
+  public function updateParent($child, $delta, $taint_parent = TRUE) {
     // if there is a value in 0 move it to 1.
     if (isset($this->data[0])) {
       $value = $this->data[0];
@@ -255,11 +260,24 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
     }
 
     $this->data[$delta] = $child;
-    $this->taintArray();
     $this->output = NULL;
+    if ($taint_parent) {
+      $this->taintArray();
+    }
 
     if (!empty($this->data) && isset($this->parent) && isset($this->parent_delta)) {
-      $this->parent->updateParent($this, $this->parent_delta);
+      $this->parent->updateParent($this, $this->parent_delta, $taint_parent);
+    }
+  }
+
+  private function explode_array() {
+    if ($this->needs_exploding) {
+      $data = $this->data[0];
+      unset($this->data[0]);
+      foreach (explode($this->parent_mark, $data) as $delta => $value) {
+        $this->data[$delta+1] = new uArray($value, $this, $delta+1, FALSE);
+      }
+      $this->needs_exploding = FALSE;
     }
   }
 
