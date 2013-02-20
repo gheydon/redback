@@ -256,7 +256,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
 
     $this->data[$delta] = $child;
     $this->taintArray();
-    $this->outout = NULL;
+    $this->output = NULL;
 
     if (!empty($this->data) && isset($this->parent) && isset($this->parent_delta)) {
       $this->parent->updateParent($this, $this->parent_delta);
