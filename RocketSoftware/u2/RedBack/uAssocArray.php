@@ -24,7 +24,7 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
 
     if ($key_field) {
       if (!$this->source->fieldExists($key_field)) {
-        throw new \Exception("{$field} is not a valid field");
+        throw new \Exception("{$key_field} is not a valid field");
       }
     }
   }
