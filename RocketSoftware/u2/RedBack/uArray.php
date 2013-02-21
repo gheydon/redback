@@ -113,11 +113,11 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
   }
 
   public function set($value, $taint_parent = TRUE) {
-    if (is_scalar($value)) {
+    if (is_scalar($value) || is_object($value)) {
       $this->data = array(); // all data is cleared.
       $delmiter_found = FALSE;
 
-      if (strpbrk($value, AM . VM . SV)) { // This should be much quicker to check if a delimiter exists, but I still need to work out the highest delimiter.
+      if (is_scalar($value) && strpbrk($value, AM . VM . SV)) { // This should be much quicker to check if a delimiter exists, but I still need to work out the highest delimiter.
         if (!isset($this->parent)) { // We don't need to do this if this has a parent, as we will determine the parent mark from the parent object.
           foreach ($this->delimiter_order as $type => $char) {
             if (strpos($value, $char) !== FALSE) {
