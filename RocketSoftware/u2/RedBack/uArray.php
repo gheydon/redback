@@ -375,7 +375,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
     return $this->iterator_position <= $max;
   }
 
-  private function getValues() {
+  public function getValues() {
     $value = (string)$this;
 
     foreach (array(RB_TYPE_AM => AM, RB_TYPE_VM => VM, RB_TYPE_SV => SV) as $type => $delimiter) {

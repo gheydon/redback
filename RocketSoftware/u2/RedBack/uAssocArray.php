@@ -62,7 +62,7 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
     $array = array();
 
     if (isset($this->key_field)) {
-      foreach ($this->getKeys() as $key => $delta) {
+      foreach ($this->source->get($this->key_field)->getValues() as $key => $delta) {
         $array[$key] = $this->get($key);
       }
     }
@@ -77,7 +77,8 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
 
   public function offsetExists($delta) {
     if (isset($this->key_field)) {
-      if (($delta = $this->keySearch($delta)) === FALSE) {
+      $keys = $this->source->get($this->key_field);
+      if (($delta = $this->source->get($this->key_field)->searchUnique($delta)) === FALSE) {
         return FALSE;
       }
     }
@@ -100,7 +101,7 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
 
   public function offsetUnset($delta) {
     if (isset($this->key_field)) {
-      if ($delta = $this->keySearch($delta) === FALSE) {
+      if (($delta = $this->source->get($this->key_field)->searchUnique($delta)) === FALSE) {
         return;
       }
     }
