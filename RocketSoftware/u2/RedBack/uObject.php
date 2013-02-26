@@ -40,9 +40,12 @@ if (!defined('AM')) {
  *
  * @package RocketSoftware\u2\RedBack\uObject
  */
-class uObject implements uAssocArraySource {
+class uObject implements uAssocArraySource, \Iterator {
 
   private $connection;
+  private $fields = array();
+  private $iterator_key;
+
   /**
    * In debug mode, communication data is stored here.
    *
@@ -653,12 +656,43 @@ class uObject implements uAssocArraySource {
   }
 
   public function loadProperties($properties) {
+    $this->fields = array();
     foreach ($properties as $key => $value) {
+      $this->fields[] = $key;
       $this->_properties[$key] = $value;
     }
   }
 
   public function getDebugData() {
     return $this->connection->getDebug();
+  }
+
+  /**
+   * Implementation of the Inerator
+   */
+
+  public function rewind() {
+    $this->iterator_key = 0;
+    if (substr($this->fields[$this->iterator_key], 0, 4) == 'HID_') {
+      $this->next();
+    }
+  }
+
+  public function current() {
+    return $this->get($this->fields[$this->iterator_key]);
+  }
+
+  public function key() {
+    return $this->fields[$this->iterator_key];
+  }
+
+  public function next() {
+    do {
+      $this->iterator_key++;
+    } while (isset($this->fields[$this->iterator_key]) && substr($this->fields[$this->iterator_key], 0, 4) == 'HID_');
+  }
+
+  public function valid() {
+    return isset($this->fields[$this->iterator_key]) && substr($this->fields[$this->iterator_key], 0, 4) != 'HID_';
   }
 }
