@@ -43,7 +43,7 @@ class uQueryItem Implements \ArrayAccess, uAssocArraySource {
     $key = NULL;
 
     if (is_array($fields[0])) {
-      $key = $fields[1];
+      $key = isset($fields[1]) ? $fields[1] : NULL;
       $fields = $fields[0];
     }
 
