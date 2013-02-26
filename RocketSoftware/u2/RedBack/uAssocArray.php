@@ -105,9 +105,12 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
       }
     }
 
-    foreach ($this->fields as $fields) {
-      $value = $this->source->get($field);
-      unset($value[$delta]);
+    foreach ($this->fields as $field) {
+      $this->source->get($field)->del($delta);
+    }
+
+    if (isset($this->key_field) && !in_array($this->key_field, $this->fields)) {
+      $this->source->get($this->key_field)->del($delta);
     }
   }
 
