@@ -141,7 +141,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
         if (!$this->allow_more_levels) {
           throw new \Exception('Too many levels created.');
         }
-        
+
         $this->parent_mark = $this->delimiter_order[$delmiter_found];
         $this->data[0] = $value;
         $this->taintArray();
@@ -325,6 +325,9 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
   }
 
   public function offsetSet($delta, $value) {
+    if (!isset($delta)) {
+      $delta = count($this)+1;
+    }
     $this->get($delta)->set($value);
   }
 
@@ -334,7 +337,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
 
   // Return the count the same as the DCOUNT() in PICK
   public function count() {
-    if (empty($this->data)) {
+    if (empty($this->data) || (count($this->data) == 1 && isset($this->data[0]) && !$this->data[0])) {
       return 0;
     }
     if ($this->needs_exploding) {
@@ -367,5 +370,38 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
   public function valid() {
     $max = empty($this->data) || (isset($this->data[0]) && empty($this->data[0]) && count($this->data) == 1) ? 0 : (isset($this->data[0]) ? 1 : max(array_keys($this->data)));
     return $this->iterator_position <= $max;
+  }
+
+  private function getValues() {
+    $value = (string)$this;
+
+    foreach (array(RB_TYPE_AM => AM, RB_TYPE_VM => VM, RB_TYPE_SV => SV) as $type => $delimiter) {
+      if (strpos($value, $delimiter) !== FALSE) {
+        break;
+      }
+    }
+
+    return explode($delimiter, $value);
+  }
+
+  public function search($value) {
+    $values = $this->getValues();
+
+    $position = array_search($value, $values);
+    return $position !== FALSE ? $position+1 : FALSE;
+  }
+
+  public function searchUnique($value) {
+    $values = $this->getValues();
+
+    $array = array_combine($values, array_keys($values));
+
+    return isset($array[(string)$value]) ? $array[(string)$value]+1 : FALSE;
+  }
+
+  public function max() {
+    $values = $this->getValues();
+
+    return max($values);
   }
 }

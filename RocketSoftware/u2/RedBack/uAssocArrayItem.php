@@ -6,17 +6,25 @@ use RocketSoftware\u2\RedBack\uAssocArraySource;
 
 class uAssocArrayItem implements \ArrayAccess, \Iterator {
   private $source = NULL;
+  private $key_field = NULL;
   private $fields = array();
   private $delta = NULL;
+  private $key = NULL;
   private $current_field;
 
-  public function __construct(uAssocArraySource $source, $fields, $delta) {
+  public function __construct(uAssocArraySource $source, $fields, $delta = NULL, $key_field = NULL, $key = NULL) {
     $this->source = $source;
+    $this->key_field = $key_field;
     $this->fields = $fields;
     $this->delta = $delta;
+    $this->key = $key;
 
-    if (!is_numeric($delta)) {
+    if (!is_numeric($delta) && isset($delta)) {
       throw new \Exception("{$delta} must be numeric");
+    }
+
+    if (isset($key_field) && !$this->source->fieldExists($key_field)) {
+      throw new \Exception("{$key_field} is not a valid field");
     }
 
     foreach ($this->fields as $field) {
@@ -35,8 +43,37 @@ class uAssocArrayItem implements \ArrayAccess, \Iterator {
     return $value[$this->delta];
   }
 
-  public function set($value) {
-    throw new \Exception('__METHOD__ not implemented');
+  public function set(array $values) {
+    if (!isset($this->delta) && isset($this->key_field)) {
+      if (isset($this->key) || $this->key == 0) {
+        $keys = $this->source->get($this->key_field);
+
+        if (($position = $keys->searchUnique($this->key)) !== FALSE) {
+          throw new \Exception("{$this->key} already exists, cannot add new field.");
+        }
+
+        $keys[] = $this->key;
+        $this->delta = $keys->searchUnique($this->key);
+      }
+      else {
+        throw new \Exception('No key specified for new array item.');
+      }
+    }
+    // There is no key field so just append everything to the end of the array.
+    else {
+      $this->delta = 1;
+      foreach ($this->fields as $field) {
+        $new_delta = count($this->source->get($field))+1;
+        $this->delta = ($this->delta < $new_delta) ? $new_delta : $this->delta;
+      }
+    }
+    foreach ($values as $field => $value) {
+      if (!in_array($field, $this->fields)) {
+        throw new \Exception("{$field} is not a valid field");
+      }
+      $data = $this->source->get($field);
+      $data[$this->delta] = $value;
+    }
   }
 
   public function offsetExists($field) {

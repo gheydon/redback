@@ -33,10 +33,14 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
     if (isset($this->key_field)) {
       $keys = $this->source->get($this->key_field);
 
-      if (($pos = $this->keySearch($delta)) !== FALSE) {
-        return new uAssocArrayItem($this->source, $this->fields, $pos);
+      if (!isset($delta)) {
+        $delta = $keys->max()+1;
       }
-      return new uAssocArrayItem($this->source, $this->fields, $this->count()+1);
+
+      if (($position = $keys->searchUnique($delta)) !== FALSE) {
+        return new uAssocArrayItem($this->source, $this->fields, $position, $this->key_field, $delta);
+      }
+      return new uAssocArrayItem($this->source, $this->fields, NULL, $this->key_field, $delta);
     }
     return new uAssocArrayItem($this->source, $this->fields, $delta);
   }
@@ -160,40 +164,5 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
 
   public function valid() {
     return $this->iterator_position <= $this->count();
-  }
-
-  private function getKeys() {
-    $keys = (string)$this->source->get($this->key_field);
-
-    foreach (array(RB_TYPE_AM => AM, RB_TYPE_VM => VM, RB_TYPE_SV => SV) as $type => $delimiter) {
-      if (strpos($keys, $delimiter) !== FALSE) {
-        break;
-      }
-    }
-
-    $keys_array = explode($delimiter, $keys);
-    $keys_array = array_combine($keys_array, array_keys($keys_array));
-    $keys_array = array_map(function ($a) {
-      return $a+1;
-    }, $keys_array);
-
-    return $keys_array;
-  }
-
-  private function keySearch($value) {
-    if (!isset($this->key_field)) {
-      if (is_numeric($value) && $value) {
-        return $value;
-      }
-      else if (!$delta) {
-        throw new \Exception('Can only delete positive keyed items in the array');
-      }
-      else {
-        throw new \Exception('There can be only numerical keyed items in the array');
-      }
-    }
-
-    $keys = $this->getKeys();
-    return isset($keys[(string)$value]) ? $keys[(string)$value] : FALSE;
   }
 }
