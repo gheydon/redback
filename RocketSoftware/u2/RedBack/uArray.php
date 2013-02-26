@@ -216,6 +216,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
     else {
       throw new \Exception('There can be only numerical keyed items in the array');
     }
+    unset($this->output);
   }
 
   /**
@@ -244,6 +245,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
     else {
       throw new \Exception('There can be only numerical keyed items in the array');
     }
+    unset($this->output);
   }
 
   public function setDelta($delta) {
@@ -333,6 +335,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
 
   public function offsetUnset($delta) {
     unset($this->data[$delta]);
+    unset($this->output);
   }
 
   // Return the count the same as the DCOUNT() in PICK
