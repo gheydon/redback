@@ -63,7 +63,7 @@ class cgi extends uConnection {
               $debug['rx'] .= $s;
             }
             if (preg_match('/^(.*)=(.*)/', $s, $match)) {
-              $this->_properties[$match[1]]['data'] = new uArray(urldecode($match[2]));
+              $this->_properties[$match[1]]['data'] = new uArray(urldecode($match[2]), array('delimiter' => VM));
             }
           }
           $ret = TRUE;

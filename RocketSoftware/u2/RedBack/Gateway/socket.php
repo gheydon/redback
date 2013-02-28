@@ -74,7 +74,7 @@ class Socket extends uConnection {
         if ($rxheaders['Content-type'] == 'text/xml') {
           if (preg_match_all('/^(.*?)=(.*?)$/m', $s, $match)) {
             foreach ($match[1] as $k => $v) {
-              $properties[$match[1][$k]]['data'] = new uArray(urldecode($match[2][$k]));
+              $properties[$match[1][$k]]['data'] = new uArray(urldecode($match[2][$k]), array('delimiter' => VM));
             }
           }
           // FIXME: Since I am now looking at the headers I most likely need to do this differently.

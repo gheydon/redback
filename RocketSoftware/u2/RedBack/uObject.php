@@ -560,8 +560,8 @@ class uObject implements uAssocArraySource, \Iterator {
   private function open_rbo($object) {
     if (preg_match("/\xfd/", $object)) {
       $handle = explode(':', $object);
-      $this->_properties['HID_FORM_INST']['data'] = new uArray($handle[0]);
-      $this->_properties['HID_USER']['data'] = new uArray($handle[1]);
+      $this->_properties['HID_FORM_INST']['data'] = new uArray($handle[0], array('delimiter' => VM));
+      $this->_properties['HID_USER']['data'] = new uArray($handle[1], array('delimiter' => VM));
       $object = ',.Refresh()';
     }
     try {
