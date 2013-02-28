@@ -35,31 +35,37 @@ define('RB_TYPE_VM', 1);
 define('RB_TYPE_SV', 2);
 
 class uArray implements \ArrayAccess, \Countable, \Iterator {
-  private $parent = NULL;
-  private $parent_delta = NULL;
   private $iterator_position = 1;
   private $data = array();
-  private $parent_mark = AM;
   private $delimiter_order = array(RB_TYPE_AM => AM, RB_TYPE_VM => VM, RB_TYPE_SV => SV);
   private $allow_more_levels = TRUE;
   private $is_tainted = FALSE;
   private $needs_exploding = FALSE;
   private $output = NULL;
+  private $options = array(
+    'parent' => NULL,
+    'parent_delta' => NULL,
+    'delimiter' => AM,
+    'taint_parent' => TRUE,
+  );
 
-  public function __construct($value = NULL, $parent = NULL, $delta = NULL, $taint_parent = TRUE) {
-    $this->parent = $parent;
-    $this->parent_delta = $delta;
+  /**
+   * $parent = NULL, $delta = NULL, $taint_parent = TRUE
+   */
+
+  public function __construct($value = NULL, array $options = array()) {
+    $this->options = $options+$this->options;
 
     // Get the parents value mark type and shift it down 1. i.e. AM => VM and throw an error if the parent mark is SV
-    if ($parent) {
-      $parent_mark = $parent->getParentMark();
+    if ($this->options['parent']) {
+      $delimiter = $this->options['parent']->getParentMark();
 
-      if (($mark_type = array_search($parent_mark, $this->delimiter_order)) !== FALSE) {
+      if (($mark_type = array_search($delimiter, $this->delimiter_order)) !== FALSE) {
         if (isset($this->delimiter_order[$mark_type+1])) {
-          $this->parent_mark = $this->delimiter_order[$mark_type+1];
+          $this->options['delimiter'] = $this->delimiter_order[$mark_type+1];
         }
         else {
-          $this->parent_mark = $this->delimiter_order[$mark_type]; // We are at the lowest level.
+          $this->options['delimiter'] = $this->delimiter_order[$mark_type]; // We are at the lowest level.
           $this->allow_more_levels = FALSE;
         }
       }
@@ -69,7 +75,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
     }
 
     if (isset($value)) {
-      $this->set($value, $taint_parent);
+      $this->set($value, $this->options['taint_parent']);
       $this->resetTaintedFlag();
     }
   }
@@ -88,7 +94,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
         $data = $this->data + array_fill(1, max(array_keys($this->data)), '');
         ksort($data, SORT_NUMERIC);
 
-        $this->output = implode($this->parent_mark, $data);
+        $this->output = implode($this->options['delimiter'], $data);
       }
     }
 
@@ -101,11 +107,11 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
       return $this;
     }
     elseif ($delta == 1 && isset($this->data[0]) && !$this->needs_exploding) {
-      return new uArray($this->data[0], $this, 1);
+      return new uArray($this->data[0], array('parent' => $this, 'parent_delta' => 1));
     }
     elseif (is_numeric($delta)) {
       $this->explode_array();
-      return isset($this->data[$delta]) ? $this->data[$delta] : new uArray(NULL, $this, $delta);
+      return isset($this->data[$delta]) ? $this->data[$delta] : new uArray(NULL, array('parent' =>  $this, 'parent_delta' =>  $delta));
     }
     else {
       throw new \Exception("There can be only numerical keyed items in the array [{$delta}]");
@@ -118,7 +124,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
       $delmiter_found = FALSE;
 
       if (is_scalar($value) && strpbrk($value, AM . VM . SV)) { // This should be much quicker to check if a delimiter exists, but I still need to work out the highest delimiter.
-        if (!isset($this->parent)) { // We don't need to do this if this has a parent, as we will determine the parent mark from the parent object.
+        if (!isset($this->options['parent'])) { // We don't need to do this if this has a parent, as we will determine the parent mark from the parent object.
           foreach ($this->delimiter_order as $type => $char) {
             if (strpos($value, $char) !== FALSE) {
               $delmiter_found = $type;
@@ -142,7 +148,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
           throw new \Exception('Too many levels created.');
         }
 
-        $this->parent_mark = $this->delimiter_order[$delmiter_found];
+        $this->options['delimiter'] = $this->delimiter_order[$delmiter_found];
         $this->data[0] = $value;
         $this->taintArray();
         $this->needs_exploding = TRUE;
@@ -153,8 +159,8 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
       }
 
       $this->output = NULL;
-      if (!empty($this->data) && isset($this->parent) && isset($this->parent_delta)) {
-        $this->parent->updateParent($this, $this->parent_delta, $taint_parent);
+      if (!empty($this->data) && isset($this->options['parent']) && isset($this->options['parent_delta'])) {
+        $this->options['parent']->updateParent($this, $this->options['parent_delta'], $taint_parent);
       }
     }
     // If this is a standard PHP indexed array starting at 0 then insert each value into ::data as delta+1
@@ -169,13 +175,13 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
           throw new \Exception('There can be only numerical keyed items in the input array');
         }
 
-        $this->data[$delta+1] = new uArray($value, $this, $delta+1);
+        $this->data[$delta+1] = new uArray($value, array('parent' =>  $this, 'parent_delta' =>  $delta+1));
         $this->taintArray();
       }
 
       $this->output = NULL;
-      if (!empty($this->data) && isset($this->parent) && isset($this->parent_delta)) {
-        $this->parent->updateParent($this, $this->parent_delta, $taint_parent);
+      if (!empty($this->data) && isset($this->options['parent']) && isset($this->options['parent_delta'])) {
+        $this->options['parent']->updateParent($this, $this->options['parent_delta'], $taint_parent);
       }
     }
     else {
@@ -194,7 +200,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
         $existing = $this->data[0];
         unset($this->data);
 
-        $this->data[1] = new uArray($existing, $this, 1);
+        $this->data[1] = new uArray($existing, array('parent' =>  $this, 'parent_delta' =>  1));
       }
 
       $keys = array_filter(array_keys($this->data), function ($a) use ($delta) {
@@ -208,7 +214,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
         unset($this->data[$key]);
       }
 
-      $this->data[$delta] = new uArray($value, $this, $delta);
+      $this->data[$delta] = new uArray($value, array('parent' =>  $this, 'parent_delta' =>  $delta));
     }
     else if (!$delta) {
       throw new \Exception('Can only delete positive keyed items in the array');
@@ -249,7 +255,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
   }
 
   public function setDelta($delta) {
-    $this->parent_delta = $delta;
+    $this->options['parent_delta'] = $delta;
   }
 
   public function updateParent($child, $delta, $taint_parent = TRUE) {
@@ -258,7 +264,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
       $value = $this->data[0];
       unset($this->data);
 
-      $this->data[1] = new uArray($value, $this, 1);
+      $this->data[1] = new uArray($value, array('parent' =>  $this, 'parent_delta' =>  1));
     }
 
     $this->data[$delta] = $child;
@@ -267,8 +273,8 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
       $this->taintArray();
     }
 
-    if (!empty($this->data) && isset($this->parent) && isset($this->parent_delta)) {
-      $this->parent->updateParent($this, $this->parent_delta, $taint_parent);
+    if (!empty($this->data) && isset($this->options['parent']) && isset($this->options['parent_delta'])) {
+      $this->options['parent']->updateParent($this, $this->options['parent_delta'], $taint_parent);
     }
   }
 
@@ -276,8 +282,8 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
     if ($this->needs_exploding) {
       $data = $this->data[0];
       unset($this->data[0]);
-      foreach (explode($this->parent_mark, $data) as $delta => $value) {
-        $this->data[$delta+1] = new uArray($value, $this, $delta+1, FALSE);
+      foreach (explode($this->options['delimiter'], $data) as $delta => $value) {
+        $this->data[$delta+1] = new uArray($value, array('parent' => $this, 'parent_delta' => $delta+1, 'taint_parent' => FALSE));
       }
       $this->needs_exploding = FALSE;
     }
@@ -296,7 +302,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
   }
 
   public function getParentMark() {
-    return $this->parent_mark;
+    return $this->options['delimiter'];
   }
 
   public function getArrayCopy() {
@@ -344,7 +350,7 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
       return 0;
     }
     if ($this->needs_exploding) {
-      return substr_count($this->data[0], $this->parent_mark) + 1;
+      return substr_count($this->data[0], $this->options['delimiter']) + 1;
     }
     elseif ($max = max(array_keys($this->data))) {
       return $max;
