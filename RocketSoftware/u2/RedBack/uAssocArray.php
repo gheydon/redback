@@ -154,8 +154,8 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
 
   public function next() {
     if (isset($this->key_field)) {
-      $keys = $this->getKeys();
-      $key_values = array_values($keys);
+      $keys = $this->source->get($this->key_field)->getValues();
+      $key_values = array_keys($keys);
       if (($pos = array_search($this->iterator_position, $key_values)) !== FALSE) {
         $pos++;
         if (isset($key_values[$pos])) {
