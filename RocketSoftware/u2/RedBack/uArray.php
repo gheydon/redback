@@ -333,10 +333,18 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
   }
 
   public function offsetSet($delta, $value) {
-    if (!isset($delta)) {
-      $delta = count($this)+1;
+    if ((string)$value !== '' && (string)$value !== NULL) {
+      if (!isset($delta)) {
+        $delta = count($this)+1;
+      }
+      $this->get($delta)->set($value);
     }
-    $this->get($delta)->set($value);
+    // If there is no value then delte the value.
+    else {
+      $this->explode_array();
+      unset($this->data[$delta]);
+      $this->output = NULL;
+    }
   }
 
   public function offsetUnset($delta) {
