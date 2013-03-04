@@ -75,6 +75,18 @@ class uAssocArray implements \ArrayAccess, \Countable, \Iterator {
     return $array;
   }
 
+  public function getLastKey() {
+    if ($this->key_field) {
+      $keys = $this->source->get($this->key_field)->getValues();
+      return end($keys);
+    }
+    return count($this);
+  }
+
+  public function getLast() {
+    return $this->get($this->getLastKey());
+  }
+
   public function offsetExists($delta) {
     if (isset($this->key_field)) {
       $keys = $this->source->get($this->key_field);
