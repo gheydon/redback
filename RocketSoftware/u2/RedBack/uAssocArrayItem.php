@@ -68,6 +68,9 @@ class uAssocArrayItem implements \ArrayAccess, \Iterator {
       }
     }
     foreach ($values as $field => $value) {
+      if ($field == $this->key_field) {
+        throw new \Exception("{$field} is a key field and cannot be set here");
+      }
       if (!in_array($field, $this->fields)) {
         throw new \Exception("{$field} is not a valid field");
       }
