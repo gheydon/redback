@@ -392,13 +392,20 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
   public function getValues() {
     $value = (string)$this;
 
-    foreach (array(RB_TYPE_AM => AM, RB_TYPE_VM => VM, RB_TYPE_SV => SV) as $type => $delimiter) {
-      if (strpos($value, $delimiter) !== FALSE) {
-        break;
+    if ($value) {
+      foreach (array(RB_TYPE_AM => AM, RB_TYPE_VM => VM, RB_TYPE_SV => SV) as $type => $delimiter) {
+        if (strpos($value, $delimiter) !== FALSE) {
+          break;
+        }
       }
-    }
 
-    return explode($delimiter, $value);
+      $values = explode($delimiter, $delimiter . $value);
+      unset($values[0]);
+      return $values;
+    }
+    else {
+      return array();
+    }
   }
 
   public function search($value) {
@@ -411,14 +418,19 @@ class uArray implements \ArrayAccess, \Countable, \Iterator {
   public function searchUnique($value) {
     $values = $this->getValues();
 
-    $array = array_combine($values, array_keys($values));
+    if (!empty($values)) {
+      $array = array_combine($values, array_keys($values));
 
-    return isset($array[(string)$value]) ? $array[(string)$value]+1 : FALSE;
+      return isset($array[(string)$value]) ? $array[(string)$value] : FALSE;
+    }
+    else {
+      return FALSE;
+    }
   }
 
   public function max() {
     $values = $this->getValues();
 
-    return max($values);
+    return empty($values) ? 0 : max($values);
   }
 }
