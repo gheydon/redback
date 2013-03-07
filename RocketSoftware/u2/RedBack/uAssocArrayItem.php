@@ -79,6 +79,13 @@ class uAssocArrayItem implements \ArrayAccess, \Iterator {
     }
   }
 
+  /**
+   * Returns the current delta for this item
+   */
+  public function getDelta() {
+    return $this->delta;
+  }
+
   public function offsetExists($field) {
     if (!in_array($field, $this->fields)) {
       throw new \Exception("{$field} is not a valid field");
