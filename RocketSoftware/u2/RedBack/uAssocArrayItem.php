@@ -4,7 +4,7 @@ namespace RocketSoftware\u2\RedBack;
 
 use RocketSoftware\u2\RedBack\uAssocArraySource;
 
-class uAssocArrayItem implements \ArrayAccess, \Iterator {
+class uAssocArrayItem implements \ArrayAccess, \Iterator, uAssocArraySource {
   private $source = NULL;
   private $key_field = NULL;
   private $fields = array();
@@ -77,6 +77,25 @@ class uAssocArrayItem implements \ArrayAccess, \Iterator {
       $data = $this->source->get($field);
       $data[$this->delta] = $value;
     }
+  }
+
+  public function fieldExists($field) {
+    return in_array($field, $this->fields);
+  }
+
+  /**
+   * Fetch an associated array of the defined fields
+   */
+  public function fetchAssoc() {
+    $fields = func_get_args();
+    $key = NULL;
+
+    if (is_array($fields[0])) {
+      $key = isset($fields[1]) ? $fields[1] : NULL;
+      $fields = $fields[0];
+    }
+
+    return new uAssocArray($this, $fields, $key);
   }
 
   /**
