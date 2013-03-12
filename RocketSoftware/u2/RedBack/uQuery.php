@@ -23,7 +23,7 @@ use \RocketSoftware\u2\RedBack\uQueryItem;
  *
  * @package RocketSoftware\RedBack\uQuery
  */
-class uQuery implements \Iterator {
+class uQuery implements \Iterator, \Countable {
   /*
    * Public functions
    */
@@ -97,6 +97,10 @@ class uQuery implements \Iterator {
 
   public function valid() {
     return ($this->current() !== FALSE);
+  }
+
+  public function count() {
+    return (string)$this->_rbo->get('HID_MAX_ITEMS', TRUE);
   }
 
   /**
