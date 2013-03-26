@@ -4,7 +4,7 @@ namespace RocketSoftware\u2\RedBack\Gateway;
 use RocketSoftware\u2\RedBack\uObject;
 use RocketSoftware\u2\RedBack\uConnection;
 use RocketSoftware\u2\RedBack\uQuery;
-use RocketSoftware\u2\RedBack\uArray;
+use RocketSoftware\u2\uArray;
 
 /**
  * Connection method to communicate directly with the RedBack Scheduler
@@ -29,7 +29,7 @@ class Socket extends uConnection {
     $this->openSocket();
 
     $header = sprintf("PATH_INFO\xfeRPVERSION\xfeHTTP_USER_AGENT\xfeQUERY_STRING\xfeSPIDER_VERSION");
-    $data = sprintf("/rbo/%s\xfe4.3.0.123\xferedback=1\xfe%s\xfe101", $method, $qs);
+    $data = sprintf("/rbo/%s\xfe4.3.0.123\xferedbeans=1\xfe%s\xfe101", $method, $qs);
     $out = sprintf('%010d%s%010d%s', strlen($header), $header, strlen($data), $data);
     $notice = '';
     $properties = array();

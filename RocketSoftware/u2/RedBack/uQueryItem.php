@@ -3,7 +3,7 @@
 namespace RocketSoftware\u2\RedBack;
 
 use RocketSoftware\u2\RedBack\uObject;
-use RocketSoftware\u2\RedBack\uAssocArraySource;
+use RocketSoftware\u2\uAssocArraySource;
 
 class uQueryItem Implements \ArrayAccess, uAssocArraySource {
   private $uObject = NULL;
