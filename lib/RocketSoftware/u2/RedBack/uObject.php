@@ -4,6 +4,7 @@ namespace RocketSoftware\u2\RedBack;
 
 use RocketSoftware\u2\RedBack\Gateway\cgi;
 use RocketSoftware\u2\RedBack\Gateway\Socket;
+use RocketSoftware\u2\uArray;
 use RocketSoftware\u2\uAssocArray;
 use RocketSoftware\u2\uAssocArraySource;
 
