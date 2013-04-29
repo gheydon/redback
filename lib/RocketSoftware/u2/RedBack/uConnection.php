@@ -2,24 +2,14 @@
 
 namespace RocketSoftware\u2\Redback;
 
-interface uConnectionInterface {
-  public function connect($url);
-  public function call($method);
-  public function getStats();
-  public function getDebug();
-}
+use RocketSoftware\u2\uArrayContainer;
 
 class uConnection implements uConnectionInterface {
-  protected $uObject;
   protected $host;
   protected $port;
-  protected $monitorData = array();
-  protected $debugData = array();
   protected $object;
 
-  public function __construct($uObject, $url = NULL) {
-    $this->uObject = $uObject;
-
+  public function __construct($url = NULL) {
     if ($url) {
       $this->connect($url);
     }
