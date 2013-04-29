@@ -4,6 +4,7 @@ namespace RocketSoftware\u2\RedBack\Gateway;
 use RocketSoftware\u2\RedBack\uObject;
 use RocketSoftware\u2\RedBack\uConnection;
 use RocketSoftware\u2\uArray;
+use RocketSoftware\u2\uArrayContainer;
 
 /**
  * Connection method to communicate directly with the RedBack Scheduler
@@ -20,18 +21,18 @@ class Socket extends uConnection {
   /**
    * Communicate with a RedBack Schedular.
    */
-  public function call($method) {
+  public function call($method, uArrayContainer $input_properties, $monitor, $debug) {
     $debug = array('tx' => '', 'rx' => array());
-    $qs = $this->uObject->formatData();
     $rxheaders = array();
-
     $this->openSocket();
 
     $header = sprintf("PATH_INFO\xfeRPVERSION\xfeHTTP_USER_AGENT\xfeQUERY_STRING\xfeSPIDER_VERSION");
-    $data = sprintf("/rbo/%s\xfe4.3.0.123\xferedbeans=1\xfe%s\xfe101", $method, $qs);
+    $data = sprintf("/rbo/%s\xfe4.3.0.123\xferedbeans=1\xfe%s\xfe101", $method, $input_properties->http_build_query(TRUE, array('HID_FORM_INST', 'HID_USER'), '/HID_ROW_\d+/') . '&redbeans=1' . ($monitor ? '&MONITOR=1' : ''));
     $out = sprintf('%010d%s%010d%s', strlen($header), $header, strlen($data), $data);
     $notice = '';
-    $properties = array();
+    $return_properties = new uArrayContainer();
+    $monitorData = array();
+    $debugData = array();
 
     /* if (is_object($this->_logger)) {
       $this->_logger->log(sprintf('%s %s', $method, $qs));
@@ -47,15 +48,15 @@ class Socket extends uConnection {
     /*
      * set up debug information
      */
-    if ($this->uObject->isDebugging()) {
-      $debug['tx'] = $out;
+    if ($debug) {
+      $debugData['tx'] = $out;
     }
     $blocks = 0;
-    while ($s = $this->getRXData($debug)) {
+    while ($s = $this->getRXData($debug, $debugData)) {
       $blocks++;
       // strip monitor data from stream
-      if ($this->uObject->isMonitoring() && preg_match("/(\[BackEnd\]..*)$/s", $s, $match)) {
-        $this->monitorData[] = array('method' => $method, 'data' => preg_replace("/\x0d/", "\n", $match[1]));
+      if ($monitor && preg_match("/(\[BackEnd\]..*)$/s", $s, $match)) {
+        $monitorData[] = array('method' => $method, 'data' => preg_replace("/\x0d/", "\n", $match[1]));
         $s = preg_replace("/\[BackEnd\].*$/s", '', $s);
       }
 
@@ -73,14 +74,14 @@ class Socket extends uConnection {
         if ($rxheaders['Content-type'] == 'text/xml') {
           if (preg_match_all('/^(.*?)=(.*?)$/m', $s, $match)) {
             foreach ($match[1] as $k => $v) {
-              $properties[$match[1][$k]]['data'] = new uArray(urldecode($match[2][$k]), array('delimiter' => VM));
+              $return_properties[$match[1][$k]] = new uArray(urldecode($match[2][$k]), array('delimiter' => VM));
             }
           }
           // FIXME: Since I am now looking at the headers I most likely need to do this differently.
           /* If this is a rboexplorer object the add the
            * response to the RESPONSE property */
           elseif ($this->object == 'rboexplorer') {
-            $properties['RESPONSE']['data'] = $s;
+            $return_properties['RESPONSE'] = $s;
           }
         }
         /* Notices are in text/plain */
@@ -108,17 +109,12 @@ class Socket extends uConnection {
 
     $this->closeSocket();
 
-    /* if (is_object($this->_logger)) {
-      $this->_logger->log(sprintf('%s duration %fms', $method, (microtime(TRUE) - $start_time) * 1000));
-      } */
-    if ($this->uObject->isDebugging()) {
-      $this->debugData[] = $debug;
-    }
     $this->_tainted = TRUE;
     if (!isset($this->object)) {
-      $this->object = isset($properties['HID_HANDLE']) ? $properties['HID_HANDLE']['data'] : ''; // TODO: Fix this so sRBO's will work.
+      $this->object = isset($return_properties['HID_HANDLE']) ? $return_properties['HID_HANDLE'] : ''; // TODO: Fix this so sRBO's will work.
     }
-    $this->uObject->loadProperties($properties);
+
+    return array($return_properties, $monitorData, $debugData);
   }
 
   private function openSocket() {
@@ -139,12 +135,12 @@ class Socket extends uConnection {
     }
   }
 
-  private function getRXData(&$debug) {
+  private function getRXData($debug, &$debugData) {
     $rx = '';
     if ($length = socket_read($this->socket, 10, PHP_BINARY_READ)) {
       $s = '';
 
-      if ($this->uObject->isDebugging()) {
+      if ($debug) {
         $rx .= $length;
       }
       if (is_numeric($length) && intval($length) > 0) {
@@ -164,12 +160,12 @@ class Socket extends uConnection {
           }
         }
 
-        if ($this->uObject->isDebugging()) {
+        if ($debug) {
           $rx .= $s;
         }
       }
-      if ($this->uObject->isDebugging()) {
-        $debug['rx'][] = $rx;
+      if ($debug) {
+        $debugData['rx'][] = $rx;
       }
 
       return $s;

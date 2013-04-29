@@ -7,6 +7,7 @@ use RocketSoftware\u2\RedBack\Gateway\Socket;
 use RocketSoftware\u2\uArray;
 use RocketSoftware\u2\uAssocArray;
 use RocketSoftware\u2\uAssocArraySource;
+use RocketSoftware\u2\uArrayContainer;
 
 /*
  * The values are normally defined here but if RocketSoftware\u2\Redback\uArray.php is loaded first then it will be defined there.
@@ -46,16 +47,6 @@ class uObject implements uAssocArraySource, \Iterator {
   private $connection;
   private $fields = array();
   private $iterator_key;
-
-  /**
-   * In debug mode, communication data is stored here.
-   *
-   * When object has been put into debug mode the communication between
-   * the gateway and the RedBack Object Server will be recorded here.
-   *
-   * @access public
-   */
-  public $__Debug_Data = array();
 
   /**
    * The handle of the object which is used to re-associate back the same
@@ -259,9 +250,9 @@ class uObject implements uAssocArraySource, \Iterator {
     $connection = parse_url($url);
     $class  = '\\RocketSoftware\\u2\\RedBack\\Gateway\\' . $connection['scheme'];
     $this->connection = NULL;
-    $this->_properties = array();
+    $this->_properties = new uArrayContainer;
 
-    $this->connection = new $class($this, $url);
+    $this->connection = new $class($url);
   }
 
   /**
@@ -311,7 +302,7 @@ class uObject implements uAssocArraySource, \Iterator {
    */
   public function close() {
     if ($this->RBOHandle && $this->_tainted) {
-      $this->connection->call(',.Refresh()');
+      $this->connection->call(',.Refresh()', $this->_properties, $this->isMonitoring(), $this->isDebugging());
     }
   }
 
@@ -339,7 +330,10 @@ class uObject implements uAssocArraySource, \Iterator {
    */
 
   public function callmethod($method) {
-    $ret = $this->connection->call("{$this->_object},this.{$method}");
+    list($properties, $monitorData, $debugData) = $this->connection->call("{$this->_object},this.{$method}", $this->_properties, $this->isMonitoring(), $this->isDebugging());
+    $this->_properties = $properties;
+    $this->_monitor_data = $monitorData;
+    $this->_debug_data[] = $debugData;
 
     // Check that there are no major errors.
     if (isset($this->_properties['HID_ERROR']) && $this->_properties['HID_ERROR'] > 0) {
@@ -388,26 +382,16 @@ class uObject implements uAssocArraySource, \Iterator {
       // process array of values to set
       foreach ($property as $k => $v) {
         if ($override || $this->fieldExists($k)) {
-          if ($v instanceof uArray) {
-            $this->_properties[$k]['data'] = $v;
-          }
-          else {
-            $this->_properties[$k]['data']->set($v);
-          }
-          $this->_properties[$k]['tainted'] = TRUE;
+          $this->_properties[$k] = $v;
+          $this->_properties[$k]->taintArray();
           $this->_tainted = TRUE;
         }
       }
     }
     else {
       if ($override || $this->fieldExists($property)) {
-        if ($value instanceof uArray) {
-          $this->_properties[$property]['data'] = $value;
-        }
-        else {
-          $this->_properties[$property]['data']->set($value);
-        }
-        $this->_properties[$property]['tainted'] = TRUE;
+        $this->_properties[$property] = $value;
+        $this->_properties[$property]->taintArray();
         $this->_tainted = TRUE;
       }
       else {
@@ -431,7 +415,7 @@ class uObject implements uAssocArraySource, \Iterator {
 
   public function get($property, $override = FALSE) {
     if (array_key_exists($property, $this->_properties) && $override || $this->fieldExists($property)) {
-      return $this->_properties[$property]['data'];
+      return $this->_properties[$property];
     }
     return FALSE;
   }
@@ -440,7 +424,7 @@ class uObject implements uAssocArraySource, \Iterator {
    * Check the the fields exist and are accessible.
    */
   public function fieldExists($property) {
-    if (array_key_exists($property, $this->_properties)) {
+    if ($this->_properties->fieldExists($property)) {
       if ($this->_debug_mode) {
         return TRUE;
       }
@@ -563,6 +547,8 @@ class uObject implements uAssocArraySource, \Iterator {
   protected $_debug_mode = FALSE;
   protected $_monitor = FALSE;
   protected $_monitor_data = NULL;
+  protected $_debug = NULL;
+  protected $_debug_data = array();
   protected $_ini_parameters = array();
   protected $_logger = NULL;
 
@@ -573,12 +559,15 @@ class uObject implements uAssocArraySource, \Iterator {
   private function open_rbo($object) {
     if (preg_match("/\xfd/", $object)) {
       $handle = explode(':', $object);
-      $this->_properties['HID_FORM_INST']['data'] = new uArray($handle[0], array('delimiter' => VM));
-      $this->_properties['HID_USER']['data'] = new uArray($handle[1], array('delimiter' => VM));
+      $this->_properties['HID_FORM_INST'] = new uArray($handle[0], array('delimiter' => VM));
+      $this->_properties['HID_USER'] = new uArray($handle[1], array('delimiter' => VM));
       $object = ',.Refresh()';
     }
     try {
-      $ret = $this->connection->call($object);
+      list($properties, $monitorData, $debugData) = $this->connection->call($object, $this->_properties, $this->isMonitoring(), $this->isDebugging());
+      $this->_properties = $properties;
+      $this->_monitor_data = $monitorData;
+      $this->_debug_data[] = $debugData;
     }
     catch (\Exception $e) {
       // This is most likely due to a "No response" return which is generally a object which doesn't exists, so re-throw a more sensible error.
@@ -586,12 +575,10 @@ class uObject implements uAssocArraySource, \Iterator {
     }
 
     if (isset($this->_properties['HID_ERROR']) && $this->_properties['HID_ERROR'] > 0) {
-      throw new \Exception($this->_properties['HID_ALERT']['data']);
+      throw new \Exception($this->_properties['HID_ALERT']);
     }
 
-    $this->RBOHandle = $this->_properties['HID_FORM_INST']['data'] . ':' . $this->_properties['HID_USER']['data'];
-
-    return $ret;
+    $this->RBOHandle = $this->_properties['HID_FORM_INST'] . ':' . $this->_properties['HID_USER'];
   }
 
   /**
@@ -634,32 +621,6 @@ class uObject implements uAssocArraySource, \Iterator {
     }
   }
 
-  public function formatData() {
-    // create post data
-    if ($this->_properties) {
-      foreach ($this->_properties as $k => $v) {
-        if (isset($v['tainted']) && $v['tainted'] || $v['data']->isTainted() || $k == 'HID_FORM_INST' || $k == 'HID_USER') {
-          $data[] = "{$k}=" .urlencode($v['data']);
-          unset($this->_properties[$k]['tainted']);
-        }
-        if (preg_match('/HID_ROW_\d+/', $k)) {
-          unset($this->_properties[$k]);
-        }
-      }
-      if (isset($data)) {
-        $data[] = 'redbeans=1';
-      }
-      $data = implode('&', $data);
-    }
-    else {
-      $data = 'redbeans=1';
-    }
-    if ($this->isMonitoring()) {
-      $data.= "&MONITOR=1";
-    }
-    return $data;
-  }
-
   public function isMonitoring() {
     return $this->_monitor;
   }
@@ -677,7 +638,7 @@ class uObject implements uAssocArraySource, \Iterator {
   }
 
   public function getDebugData() {
-    return $this->connection->getDebug();
+    return $this->_debug_data;
   }
 
   /**

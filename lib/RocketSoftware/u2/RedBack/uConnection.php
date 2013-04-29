@@ -24,7 +24,7 @@ class uConnection implements uConnectionInterface {
     $this->port = $connection['port'];
   }
 
-  public function call($method) {
+  public function call($method, uArrayContainer $input_properties, $monitor, $debug) {
     return FALSE;
   }
 
