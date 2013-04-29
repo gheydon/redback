@@ -627,7 +627,7 @@ class uObject implements uAssocArraySource, \Iterator {
     if ($this->_properties) {
       foreach ($this->_properties as $k => $v) {
         if (isset($v['tainted']) && $v['tainted'] || $v['data']->isTainted() || $k == 'HID_FORM_INST' || $k == 'HID_USER') {
-          $data[] = "$k=" .urlencode($v['data']);
+          $data[] = "{$k}=" .urlencode($v['data']);
           unset($this->_properties[$k]['tainted']);
         }
         if (preg_match('/HID_ROW_\d+/', $k)) {
