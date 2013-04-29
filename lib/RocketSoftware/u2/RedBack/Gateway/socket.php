@@ -3,7 +3,6 @@ namespace RocketSoftware\u2\RedBack\Gateway;
 
 use RocketSoftware\u2\RedBack\uObject;
 use RocketSoftware\u2\RedBack\uConnection;
-use RocketSoftware\u2\RedBack\uQuery;
 use RocketSoftware\u2\uArray;
 
 /**
@@ -120,22 +119,6 @@ class Socket extends uConnection {
       $this->object = isset($properties['HID_HANDLE']) ? $properties['HID_HANDLE']['data'] : ''; // TODO: Fix this so sRBO's will work.
     }
     $this->uObject->loadProperties($properties);
-
-    if (array_key_exists('HID_FIELDNAMES', $properties)) {
-      $ret = new uQuery($this->uObject);
-      /*
-       * In the ASP and IBM version on the Redback Gateway the MaxRows is
-       * actually a virtual field that is created when a recordset is
-       * returned. This behaviour is going to be duplicated.
-       */
-      if (array_key_exists('HID_MAX_ITEMS', $properties)) {
-        $properties['MaxRows'] = $properties['HID_MAX_ITEMS'];
-      }
-    }
-    else {
-      $ret = array_key_exists('HID_ERROR', $properties) ? FALSE : TRUE;
-    }
-    return $ret;
   }
 
   private function openSocket() {

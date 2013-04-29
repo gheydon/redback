@@ -345,8 +345,20 @@ class uObject implements uAssocArraySource, \Iterator {
     if (isset($this->_properties['HID_ERROR']) && $this->_properties['HID_ERROR'] > 0) {
       throw new \Exception($this->get('HID_ALERT', TRUE));
     }
+    else if (array_key_exists('HID_FIELDNAMES', $this->_properties)) {
+      $query = new uQuery($this->uObject);
+      /*
+       * In the ASP and IBM version on the Redback Gateway the MaxRows is
+       * actually a virtual field that is created when a recordset is
+       * returned. This behaviour is going to be duplicated.
+       */
+      if (array_key_exists('HID_MAX_ITEMS', $properties)) {
+        $this->_properties['MaxRows'] =& $this->_properties['HID_MAX_ITEMS'];
+      }
 
-    return $ret;
+      return $query;
+    }
+    return TRUE;
   }
 
   /**

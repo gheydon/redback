@@ -3,7 +3,6 @@
 namespace RocketSoftware\u2\RedBack\Gateway;
 
 use RocketSoftware\u2\RedBack\uObject;
-use RocketSoftware\u2\RedBack\uQuery;
 use RocketSoftware\u2\RedBack\uArray;
 
 /**
@@ -85,11 +84,5 @@ class cgi extends uConnection {
       $this->object = isset($properties['HID_HANDLE']) ? $properties['HID_HANDLE']['data'] : ''; // TODO: Fix this so sRBO's will work.
     }
     $this->uObject->loadProperties($properties);
-
-    if ($ret && array_key_exists('HID_FIELDNAMES', $this->_properties)) {
-      $ret = new uQuery($this->uObject);
-    }
-
-    return $ret;
   }
 }
