@@ -414,7 +414,7 @@ class uObject implements uAssocArraySource, \Iterator {
    */
 
   public function get($property, $override = FALSE) {
-    if (array_key_exists($property, $this->_properties) && $override || $this->fieldExists($property)) {
+    if ($this->_properties->fieldExists($property) && $override || $this->fieldExists($property)) {
       return $this->_properties[$property];
     }
     return FALSE;
