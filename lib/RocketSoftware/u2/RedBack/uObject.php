@@ -336,7 +336,7 @@ class uObject implements uAssocArraySource, \Iterator {
     $this->_debug_data[] = $debugData;
 
     // Check that there are no major errors.
-    if (isset($this->_properties['HID_ERROR']) && $this->_properties['HID_ERROR'] > 0) {
+    if (isset($this->_properties['HID_ERROR']) && (string)$this->_properties['HID_ERROR'] > 0) {
       throw new \Exception($this->get('HID_ALERT', TRUE));
     }
     else if (array_key_exists('HID_FIELDNAMES', $this->_properties)) {
