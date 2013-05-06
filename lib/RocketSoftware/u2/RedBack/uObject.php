@@ -332,6 +332,8 @@ class uObject implements uAssocArraySource, \Iterator {
     $this->_monitor_data = $monitorData;
     $this->_debug_data[] = $debugData;
 
+    $properties->resetTaintFlag();
+
     // Check that there are no major errors.
     if (isset($this->_properties['HID_ERROR']) && (string)$this->_properties['HID_ERROR'] > 0) {
       throw new uException($this->get('HID_ALERT', TRUE));
@@ -565,6 +567,8 @@ class uObject implements uAssocArraySource, \Iterator {
       $this->_properties = $properties;
       $this->_monitor_data = $monitorData;
       $this->_debug_data[] = $debugData;
+      
+      $properties->resetTaintFlag();
     }
     catch (uCommsException $e) {
       // This is most likely due to a "No response" return which is generally a object which doesn't exists, so re-throw a more sensible error.
