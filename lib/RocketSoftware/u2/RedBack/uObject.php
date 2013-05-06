@@ -321,7 +321,16 @@ class uObject implements uAssocArraySource, \Iterator {
 
   public function callmethod($method) {
     list($properties, $monitorData, $debugData) = $this->connection->call("{$this->_object},this.{$method}", $this->_properties, $this->isMonitoring(), $this->isDebugging());
-    $this->_properties = $properties;
+    
+    if (isset($properties['HID_SUPERCLASSNAME'])) {
+      // When excuting methods from the superclass you need to merge the content back in.
+      foreach ($properties as $key => $value) {
+        $this->_properties[$key] = $value;
+      }
+    }
+    else {
+      $this->_properties = $properties;
+    }
     $this->_monitor_data = $monitorData;
     $this->_debug_data[] = $debugData;
 
@@ -331,15 +340,15 @@ class uObject implements uAssocArraySource, \Iterator {
     if (isset($this->_properties['HID_ERROR']) && (string)$this->_properties['HID_ERROR'] > 0) {
       throw new uException($this->get('HID_ALERT', TRUE));
     }
-    else if (array_key_exists('HID_FIELDNAMES', $this->_properties)) {
-      $query = new uQuery($this->uObject);
+    else if ($this->_properties->fieldExists('HID_FIELDNAMES')) {
+      $query = new uQuery($this);
       /*
        * In the ASP and IBM version on the Redback Gateway the MaxRows is
        * actually a virtual field that is created when a recordset is
        * returned. This behaviour is going to be duplicated.
        */
       if (array_key_exists('HID_MAX_ITEMS', $properties)) {
-        $this->_properties['MaxRows'] =& $this->_properties['HID_MAX_ITEMS'];
+        $this->_properties['MaxRows'] = $this->_properties['HID_MAX_ITEMS'];
       }
 
       return $query;
