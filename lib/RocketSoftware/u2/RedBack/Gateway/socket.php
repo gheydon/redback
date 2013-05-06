@@ -35,11 +35,6 @@ class Socket extends uConnection {
     $monitorData = array();
     $debugData = array();
 
-    /* if (is_object($this->_logger)) {
-      $this->_logger->log(sprintf('%s %s', $method, $qs));
-      $start_time = microtime(TRUE);
-    } */
-
     @socket_write($this->socket, $out);
     if ($err = socket_last_error($this->socket)) {
       $this->closeSocket();

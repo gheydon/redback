@@ -126,10 +126,6 @@ class uObject implements uAssocArraySource, \Iterator {
           case 'monitor':
             $this->__setMonitor($v ? TRUE : FALSE);
             break;
-          case 'log':
-            if (class_exists('Log') && $v) {
-              $this->_logger = &Log::factory('file', $v, 'redback', array('buffering' => TRUE));
-            }
         }
       }
     }
@@ -158,9 +154,6 @@ class uObject implements uAssocArraySource, \Iterator {
 
   public function __destruct() {
     $this->close();
-    if (is_object($this->_logger)) {
-      $this->_logger->close();
-    }
   }
 
   /**
