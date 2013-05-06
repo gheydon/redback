@@ -285,9 +285,7 @@ class uObject implements uAssocArraySource, \Iterator {
     }
 
     if ($user) {
-      if (!$this->_authorise($obj, $user, $pass)) {
-        return FALSE;
-      }
+      $this->_authorise($obj, $user, $pass);
     }
 
     return $this->open_rbo($obj);
@@ -608,15 +606,15 @@ class uObject implements uAssocArraySource, \Iterator {
     $this->open_rbo("{$obj_parts[0]}:RPLOGIN");
     $this->set('USERID', $user);
     $this->set('PASSWORD', $pass);
-    if ($this->callmethod('ADOLogin')) {
-      $props = array();
+    try {
+      $this->callmethod('ADOLogin');
+      $props = new uArrayContainer;
       $props['HID_FORM_INST'] = $this->_properties['HID_FORM_INST'];
       $props['HID_USER'] = $this->_properties['HID_USER'];
       $this->_properties = $props;
-      return TRUE;
     }
-    else {
-      return FALSE;
+    catch (uException $e) {
+      throw new uUserException($e->getMessage());
     }
   }
 
