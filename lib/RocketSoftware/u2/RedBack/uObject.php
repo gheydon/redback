@@ -2,12 +2,11 @@
 
 namespace RocketSoftware\u2\RedBack;
 
-use RocketSoftware\u2\RedBack\Gateway\cgi;
-use RocketSoftware\u2\RedBack\Gateway\Socket;
 use RocketSoftware\u2\uArray;
 use RocketSoftware\u2\uAssocArray;
 use RocketSoftware\u2\uAssocArraySource;
 use RocketSoftware\u2\uArrayContainer;
+use RocketSoftware\u2\uException;
 
 /*
  * The values are normally defined here but if RocketSoftware\u2\Redback\uArray.php is loaded first then it will be defined there.
@@ -191,7 +190,7 @@ class uObject implements uAssocArraySource, \Iterator {
       $this->set($property, $value);
     }
     else {
-      throw new \Exception(sprintf('Undefined property: %s::%s.', get_class($this), $property));
+      throw new uException(sprintf('Undefined property: %s::%s.', get_class($this), $property));
     }
   }
 
@@ -215,7 +214,7 @@ class uObject implements uAssocArraySource, \Iterator {
       return $this->get($property);
     }
     else {
-      throw new \Exception(sprintf('Undefined property: %s::%s.', get_class($this), $property));
+      throw new uException(sprintf('Undefined property: %s::%s.', get_class($this), $property));
     }
   }
 
@@ -242,7 +241,7 @@ class uObject implements uAssocArraySource, \Iterator {
       return !empty($value);
     }
     else {
-      throw new \Exception(sprintf('Undefined property: %s::%s.', get_class($this), $property));
+      throw new uException(sprintf('Undefined property: %s::%s.', get_class($this), $property));
     }
   }
 
@@ -282,7 +281,7 @@ class uObject implements uAssocArraySource, \Iterator {
    */
   public function open($obj, $user = NULL, $pass = NULL) {
     if (!$this->connection) {
-      throw new \Exception('No connection has been set up. Unable to open method');
+      throw new uException('No connection has been set up. Unable to open method');
     }
 
     if ($user) {
@@ -337,7 +336,7 @@ class uObject implements uAssocArraySource, \Iterator {
 
     // Check that there are no major errors.
     if (isset($this->_properties['HID_ERROR']) && (string)$this->_properties['HID_ERROR'] > 0) {
-      throw new \Exception($this->get('HID_ALERT', TRUE));
+      throw new uException($this->get('HID_ALERT', TRUE));
     }
     else if (array_key_exists('HID_FIELDNAMES', $this->_properties)) {
       $query = new uQuery($this->uObject);
@@ -395,7 +394,7 @@ class uObject implements uAssocArraySource, \Iterator {
         $this->_tainted = TRUE;
       }
       else {
-        throw new \Exception(sprintf('Undefined property: %s::%s.', get_class($this), $property));
+        throw new uException(sprintf('Undefined property: %s::%s.', get_class($this), $property));
       }
     }
   }
@@ -569,13 +568,13 @@ class uObject implements uAssocArraySource, \Iterator {
       $this->_monitor_data = $monitorData;
       $this->_debug_data[] = $debugData;
     }
-    catch (\Exception $e) {
+    catch (uCommsException $e) {
       // This is most likely due to a "No response" return which is generally a object which doesn't exists, so re-throw a more sensible error.
-      throw new \Exception('Unable to open RBO '. $object);
+      throw new uCommsException('Unable to open RBO '. $object, 0, $e);
     }
 
     if (isset($this->_properties['HID_ERROR']) && $this->_properties['HID_ERROR'] > 0) {
-      throw new \Exception($this->_properties['HID_ALERT']);
+      throw new uException($this->_properties['HID_ALERT']);
     }
 
     $this->RBOHandle = $this->_properties['HID_FORM_INST'] . ':' . $this->_properties['HID_USER'];

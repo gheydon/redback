@@ -3,6 +3,7 @@ namespace RocketSoftware\u2\RedBack\Gateway;
 
 use RocketSoftware\u2\RedBack\uObject;
 use RocketSoftware\u2\RedBack\uConnection;
+use RocketSoftware\u2\RedBack\uCommsException;
 use RocketSoftware\u2\uArray;
 use RocketSoftware\u2\uArrayContainer;
 
@@ -42,7 +43,7 @@ class Socket extends uConnection {
     @socket_write($this->socket, $out);
     if ($err = socket_last_error($this->socket)) {
       $this->closeSocket();
-      throw new \Exception("Error Writing to Server ($err) " . socket_strerror($err));
+      throw new uCommsException("Error Writing to Server ($err) " . socket_strerror($err));
     }
 
     /*
@@ -94,17 +95,17 @@ class Socket extends uConnection {
     if ($blocks == 0) {
       // No response was given from the server.
       $this->closeSocket();
-      throw new \Exception('No reponse from request.');
+      throw new uCommsException('No reponse from request.');
     }
 
     if (!empty($notice)) {
       $this->closeSocket();
-      throw new \Exception($notice);
+      throw new uServerException($notice);
     }
 
     if ($err = socket_last_error($this->socket)) {
       $this->closeSocket();
-      throw new \Exception("Error Reading from Server ($err) " . socket_strerror($err));
+      throw new uCommsException("Error Reading from Server ($err) " . socket_strerror($err));
     }
 
     $this->closeSocket();
@@ -123,7 +124,7 @@ class Socket extends uConnection {
       $result = @socket_connect($this->socket, $this->host, $this->port);
       if (!$result) {
         $this->closeSocket();
-        throw new \Exception("connecting to server failed, Reason: ($result) " . socket_strerror($result));
+        throw new uCommsException("connecting to server failed, Reason: ($result) " . socket_strerror($result));
       }
     }
   }
@@ -156,7 +157,7 @@ class Socket extends uConnection {
           else {
             $err = socket_last_error($this->socket);
             $this->closeSocket();
-            throw new \Exception("Error Reading from Server ($err) " . socket_strerror($err));
+            throw new uCommsException("Error Reading from Server ($err) " . socket_strerror($err));
           }
         }
 
