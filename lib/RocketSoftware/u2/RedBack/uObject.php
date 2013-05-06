@@ -249,7 +249,7 @@ class uObject implements uAssocArraySource, \Iterator {
     $connection = parse_url($url);
     $class  = '\\RocketSoftware\\u2\\RedBack\\Gateway\\' . $connection['scheme'];
     $this->connection = NULL;
-    $this->_properties = new uArrayContainer;
+    $this->_properties = new uArrayContainer(NULL, array('delimiter' => VM));
 
     $this->connection = new $class($url);
   }
@@ -608,7 +608,7 @@ class uObject implements uAssocArraySource, \Iterator {
     $this->set('PASSWORD', $pass);
     try {
       $this->callmethod('ADOLogin');
-      $props = new uArrayContainer;
+      $props = new uArrayContainer(NULL, array('delimiter' => VM));
       $props['HID_FORM_INST'] = $this->_properties['HID_FORM_INST'];
       $props['HID_USER'] = $this->_properties['HID_USER'];
       $this->_properties = $props;

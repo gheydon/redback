@@ -31,7 +31,7 @@ class Socket extends uConnection {
     $data = sprintf("/rbo/%s\xfe4.3.0.123\xferedbeans=1\xfe%s\xfe101", $method, $input_properties->http_build_query(TRUE, array('HID_FORM_INST', 'HID_USER'), '/HID_ROW_\d+/') . '&redbeans=1' . ($monitor ? '&MONITOR=1' : ''));
     $out = sprintf('%010d%s%010d%s', strlen($header), $header, strlen($data), $data);
     $notice = '';
-    $return_properties = new uArrayContainer();
+    $return_properties = new uArrayContainer(NULL, array('delimiter' => VM));
     $monitorData = array();
     $debugData = array();
 
@@ -75,7 +75,7 @@ class Socket extends uConnection {
         if ($rxheaders['Content-type'] == 'text/xml') {
           if (preg_match_all('/^(.*?)=(.*?)$/m', $s, $match)) {
             foreach ($match[1] as $k => $v) {
-              $return_properties[$match[1][$k]] = new uArray(urldecode($match[2][$k]), array('delimiter' => VM));
+              $return_properties[$match[1][$k]] = urldecode($match[2][$k]);
             }
           }
           // FIXME: Since I am now looking at the headers I most likely need to do this differently.
