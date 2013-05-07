@@ -2,6 +2,7 @@
 
 namespace RocketSoftware\u2\Redback;
 
+use RocketSoftware\u2\RedBack\uConnectionInterface;
 use RocketSoftware\u2\uArrayContainer;
 
 class uConnection implements uConnectionInterface {
