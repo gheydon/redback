@@ -27,12 +27,4 @@ class uConnection implements uConnectionInterface {
   public function call($method, uArrayContainer $input_properties, $monitor, $debug) {
     return FALSE;
   }
-
-  public function getStats() {
-    return $this->monitorData;
-  }
-
-  public function getDebug() {
-    return $this->debugData;
-  }
 }
