@@ -3,7 +3,7 @@
   "type": "library",
   "description": "PHP Connector for the RocketSoftware RedBack Application",
   "keywords": ["RedBack", "RocketSoftware", "u2"],
-  "homepage": "https://github.com/gheydon/PHPRedback",
+  "homepage": "https://github.com/gheydon/redback",
   "license": "MIT",
   "authors": [
     {
