@@ -347,7 +347,7 @@ class uObject implements uAssocArraySource, \Iterator {
        * actually a virtual field that is created when a recordset is
        * returned. This behaviour is going to be duplicated.
        */
-      if (array_key_exists('HID_MAX_ITEMS', $properties)) {
+      if ($properties->fieldExists('HID_MAX_ITEMS')) {
         $this->_properties['MaxRows'] = $this->_properties['HID_MAX_ITEMS'];
       }
 
