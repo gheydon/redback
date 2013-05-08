@@ -19,6 +19,12 @@ class Socket extends uConnection {
     $this->closeSocket();
   }
 
+  public function connect($url) {
+    $connection = parse_url($url);
+    $this->host = $connection['host'];
+    $this->port = $connection['port'];
+  }
+
   /**
    * Communicate with a RedBack Schedular.
    */

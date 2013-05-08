@@ -5,7 +5,7 @@ namespace RocketSoftware\u2\Redback;
 use RocketSoftware\u2\RedBack\uConnectionInterface;
 use RocketSoftware\u2\uArrayContainer;
 
-class uConnection implements uConnectionInterface {
+abstract class uConnection implements uConnectionInterface {
   protected $host;
   protected $port;
   protected $object;
@@ -16,16 +16,6 @@ class uConnection implements uConnectionInterface {
     }
   }
 
-  /**
-   * Setup connection to the Redback server.
-   */
-  public function connect($url) {
-    $connection = parse_url($url);
-    $this->host = $connection['host'];
-    $this->port = $connection['port'];
-  }
-
-  public function call($method, uArrayContainer $input_properties, $monitor, $debug) {
-    return FALSE;
-  }
+  abstract public function connect($url);
+  abstract public function call($method, uArrayContainer $input_properties, $monitor, $debug);
 }
