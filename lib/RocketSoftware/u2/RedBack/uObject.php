@@ -237,6 +237,10 @@ class uObject implements uAssocArraySource, \Iterator {
       throw new uException(sprintf('Undefined property: %s::%s.', get_class($this), $property));
     }
   }
+  
+  public function __clone() {
+    throw new uServerException('Clone not Implemented.');
+  }
 
   public function connect($url) {
     $connection = parse_url($url);
