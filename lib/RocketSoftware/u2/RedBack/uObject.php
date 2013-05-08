@@ -513,23 +513,6 @@ class uObject implements uAssocArraySource, \Iterator {
    */
 
   public function __getStats() {
-    if (is_array($this->connection->getStats())) {
-      foreach ($this->_monitor_data as $k => $v) {
-        if (isset($v['data'])) {
-          $stats = array();
-          foreach (explode("\n", $v['data']) as $s) {
-            if (preg_match('/\[(.*)\]/', $s, $match)) {
-              $group = $match[1];
-            }
-            elseif ($group && preg_match('/^(.*)=(.*)$/', $s, $match)) {
-              $stats[$group][$match[1]] = $match[2];
-            }
-          }
-          unset($this->_monitor_data[$k]['data']);
-          $this->_monitor_data[$k] = array_merge($this->_monitor_data[$k],$stats);
-        }
-      }
-    }
     return $this->_monitor_data;
   }
 
@@ -560,8 +543,8 @@ class uObject implements uAssocArraySource, \Iterator {
   private function open_rbo($object) {
     if (preg_match("/\xfd/", $object)) {
       $handle = explode(':', $object);
-      $this->_properties['HID_FORM_INST'] = new uArray($handle[0], array('delimiter' => VM));
-      $this->_properties['HID_USER'] = new uArray($handle[1], array('delimiter' => VM));
+      $this->_properties['HID_FORM_INST'] = $handle[0];
+      $this->_properties['HID_USER'] = $handle[1];
       $object = ',.Refresh()';
     }
     try {
