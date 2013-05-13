@@ -341,7 +341,7 @@ class uObject implements uAssocArraySource, \Iterator {
     $properties->resetTaintFlag();
 
     // Check that there are no major errors.
-    if (isset($this->_properties['HID_ERROR']) && (string)$this->_properties['HID_ERROR'] > 0) {
+    if (isset($this->_properties['HID_ERROR']) && (string)$this->_properties['HID_ERROR'] != 0) {
       throw new uException($this->get('HID_ALERT', TRUE));
     }
     else if ($this->_properties->fieldExists('HID_FIELDNAMES')) {
