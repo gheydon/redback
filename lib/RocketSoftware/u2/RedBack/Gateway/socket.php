@@ -4,6 +4,7 @@ namespace RocketSoftware\u2\RedBack\Gateway;
 use RocketSoftware\u2\RedBack\uObject;
 use RocketSoftware\u2\RedBack\uConnection;
 use RocketSoftware\u2\RedBack\uCommsException;
+use RocketSoftware\u2\RedBack\uServerException;
 use RocketSoftware\u2\uArray;
 use RocketSoftware\u2\uArrayContainer;
 
