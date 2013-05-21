@@ -20,6 +20,9 @@
   "require-dev": {
     "symfony/yaml": "2.2.*"
   },
+  "suggest": {
+    "heydon/redback4": "Provides connectivity to the Redback 4.2+ server in the u2 database environment."
+  },
   "autoload": {
     "psr-0": {
       "RocketSoftware": "lib/"
