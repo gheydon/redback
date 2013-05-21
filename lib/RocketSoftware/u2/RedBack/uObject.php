@@ -115,21 +115,6 @@ class uObject implements uAssocArraySource, \Iterator {
    * @access public
    */
   public function __construct($url = NULL, $object = NULL, $user = NULL, $pass = NULL, $debug = FALSE) {
-    $this->_readini();
-
-    if (array_key_exists('Parameters', $this->_ini_parameters)) {
-      foreach ($this->_ini_parameters['Parameters'] as $k => $v) {
-        switch ($k) {
-          case 'debug':
-            $this->__setDebug($v ? TRUE : FALSE);
-            break;
-          case 'monitor':
-            $this->__setMonitor($v ? TRUE : FALSE);
-            break;
-        }
-      }
-    }
-
     $this->__setDebug($debug);
 
     if ($url) {
@@ -537,7 +522,6 @@ class uObject implements uAssocArraySource, \Iterator {
   protected $_monitor_data = NULL;
   protected $_debug = NULL;
   protected $_debug_data = array();
-  protected $_ini_parameters = array();
   protected $_logger = NULL;
 
   /*
@@ -569,29 +553,6 @@ class uObject implements uAssocArraySource, \Iterator {
     }
 
     $this->RBOHandle = $this->_properties['HID_FORM_INST'] . ':' . $this->_properties['HID_USER'];
-  }
-
-  /**
-   * @access private
-   */
-
-  protected function _readini() {
-    global $__RedBack_ini;
-
-    if (!$__RedBack_ini) {
-      $ini_path = DIRECTORY_SEPARATOR == '\\' ? array('.', 'C:\\winnt') : array('.', '/etc');
-      foreach ($ini_path as $directory) {
-        $file = $directory . DIRECTORY_SEPARATOR .'phprgw.ini';
-        if (file_exists($file)) {
-          $__RedBack_ini = @parse_ini_file($file, TRUE);
-          break;
-        }
-        else {
-          $__RedBack_ini = array();
-        }
-      }
-    }
-    $this->_ini_parameters = $__RedBack_ini;
   }
 
   protected function _authorise($obj, $user, $pass) {
