@@ -2,8 +2,8 @@
 
 Namespace RocketSoftware\u2\RedBack;
 
-use RocketSoftware\u2\uException;
+use RocketSoftware\u2\uCommsException;
 
-class uServerException extends uException {
-  
+class uServerException extends uCommsException {
+
 }
