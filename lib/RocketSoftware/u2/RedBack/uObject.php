@@ -280,7 +280,7 @@ class uObject implements uAssocArraySource, \Iterator {
    * This function is automatically called by the destructor.
    */
   public function close() {
-    if ($this->RBOHandle && $this->_tainted) {
+    if ($this->RBOHandle && $this->_properties->isTainted()) {
       $this->connection->call(',.Refresh()', $this->_properties, $this->isMonitoring(), $this->isDebugging());
     }
   }
