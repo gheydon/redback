@@ -580,14 +580,6 @@ class uObject implements uAssocArraySource, \Iterator {
     return $this->_debug_mode;
   }
 
-  public function loadProperties($properties) {
-    $this->fields = array();
-    foreach ($properties as $key => $value) {
-      $this->fields[] = $key;
-      $this->_properties[$key] = $value;
-    }
-  }
-
   public function getDebugData() {
     return $this->_debug_data;
   }
