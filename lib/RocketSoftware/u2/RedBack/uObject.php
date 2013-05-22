@@ -448,19 +448,6 @@ class uObject implements uAssocArraySource, \Iterator {
   }
 
   /**
-   * Return an array of all the errors that have been set.
-   *
-   * Any errors that have occured since the last method call whill be
-   * returned in the field as an array
-   *
-   * @access public
-   * @return array  An array of all the errors that have occured.
-   */
-  public function __getError() {
-    return explode("\n", $this->get('HID_ALERT', TRUE));
-  }
-
-  /**
    * Turns on and off the RedBack Scheduler monitor which returns a
    * statistics on how long it took to do certain methods.
    *
