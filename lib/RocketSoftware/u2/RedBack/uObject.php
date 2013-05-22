@@ -568,7 +568,7 @@ class uObject implements uAssocArraySource, \Iterator {
       $this->_properties = $props;
     }
     catch (uException $e) {
-      throw new uUserException($e->getMessage());
+      throw new uUserException($e->getMessage(), 0, $e);
     }
   }
 
