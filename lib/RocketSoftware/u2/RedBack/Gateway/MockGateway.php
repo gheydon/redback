@@ -9,12 +9,13 @@ use RocketSoftware\u2\RedBack\uServerException;
 use RocketSoftware\u2\uArrayContainer;
 use Symfony\Component\Yaml\Parser;
 
-class testGateway extends uConnection implements uConnectionInterface {
+class MockGateway extends uConnection implements uConnectionInterface {
   private $script;
   private $objectName;
 
   public function connect($url) {
     $basePath = realpath(__DIR__ . '/../../../../../tests/scripts');
+    
     $parts = parse_url($url) + array('path' => '');
     $path = $basePath . '/' . $parts['host'] . $parts['path'];
 
@@ -27,7 +28,7 @@ class testGateway extends uConnection implements uConnectionInterface {
       throw new uCommsException('Unable to locate test script ' . $path . '.json');
     }
   }
-  
+
   public function call($method, uArrayContainer $input_properties, $monitor, $debug) {
     // If this->objectName is not set then this must be an open.
     if ($method == ',.Refresh()') {
@@ -39,38 +40,33 @@ class testGateway extends uConnection implements uConnectionInterface {
     else {
       $methodName = substr($method, 6);
     }
-    
+
     if (isset($this->script[$this->objectName])) {
-      if (isset($this->script[$this->objectName][$methodName])) {
-        $response = $this->script[$this->objectName][$methodName];
-      }
-      else if (isset($this->script[$this->objectName]['default'])) {
-        $response = $this->script[$this->objectName]['default'];
+      if (!empty($this->script[$this->objectName])) {
+        $step = array_shift($this->script[$this->objectName]);
       }
       else {
-        throw new uServerException("Method {$method} not found");
+        throw new uServerException("No more steps for object {$this->objectName}, method {$method}");
       }
-      
-      if (isset($response['received'])) {
-        foreach ($response['received'] as $key => $value) {
-          if ($value != $input_properties[$key]) {
+
+      if (!empty($step['request'])) {
+        foreach ($step['request'] as $key => $value) {
+          if (urldecode($value) != $input_properties[$key]) {
             throw new uServerException("{$key} value doesn't equal {$value}, but instead is {$input_properties[$key]}");
           }
         }
+      }
 
-        $response = $response['response'];
-      }
-      
       $return = new uArrayContainer(NULL, array('delimiter' => VM));
-      
-      foreach ($response as $key => $value) {
-        $return[$key] = strtr($value, array('^' => "\xfe", ']' => "\xfd"));
+
+      foreach ($step['response'] as $key => $value) {
+        $return[$key] = urldecode($value);
       }
-      
+
       return array($return, array(), array());
     }
     else {
-      throw new uCommsException('Unable to locate object ' . str_replace('|', ':', $this->objectName));
+      throw new uCommsException('Unable to locate object ' . $this->objectName);
     }
   }
 }

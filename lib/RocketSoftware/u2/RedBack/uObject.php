@@ -43,7 +43,7 @@ if (!defined('AM')) {
  */
 class uObject implements uAssocArraySource, \Iterator {
 
-  private $connection;
+  protected $connection;
   private $fields = array();
   private $iterator_key;
 

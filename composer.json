@@ -18,7 +18,8 @@
     "heydon/uarray": "1.0.*@dev"
   },
   "require-dev": {
-    "symfony/yaml": "2.2.*"
+    "symfony/yaml": "2.2.*",
+    "heydon/redback4": "1.0.*@dev"
   },
   "suggest": {
     "heydon/redback4": "Provides connectivity to the Redback 4.2+ server in the u2 database environment."
