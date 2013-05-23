@@ -24,10 +24,15 @@ class uObjectTest extends \PHPUnit_Framework_TestCase {
   public function testOpen() {
     $this->uObject->open('EXMOD:Customers');
 
+    $this->assertFalse(isset($this->uObject->Name));
+
     $this->uObject->CustId = 1;
     $this->uObject->ReadCust();
 
+    $this->assertTrue(isset($this->uObject->Name));
     $this->assertEquals("Nik's Musk Emporium", (string)$this->uObject->Name);
+    
+    $this->uObject->CustId = 2;
   }
 
   public function testOpenFromConstructor() {
@@ -69,5 +74,40 @@ class uObjectTest extends \PHPUnit_Framework_TestCase {
    */
   public function testAuthOpenFail() {
     $this->uObject->open('EXMOD:Customers', 'rbadmin', 'xxxxx');
+  }
+  
+  /**
+   * @expectedException RocketSoftware\u2\uException
+   * @expectedExceptionMessage Undefined property: RocketSoftware\u2\RedBack\uObjectDevel::field_doesnt_exist
+   */
+  public function testErrorSet() {
+    $this->uObject->open('EXMOD:Customers');
+    
+    $this->uObject->field_doesnt_exist = 'abc';
+  }
+  
+  /**
+   * @expectedException RocketSoftware\u2\uException
+   * @expectedExceptionMessage Undefined property: RocketSoftware\u2\RedBack\uObjectDevel::field_doesnt_exist
+   */
+  public function testErrorGet() {
+    $this->uObject->open('EXMOD:Customers');
+    
+    $var = $this->uObject->field_doesnt_exist;
+  }
+  
+  public function testOpenHandle() {
+    $this->uObject->open('EXMOD:Employee');
+
+    $this->uObject->EmpId = 1012;
+    $this->uObject->ReadData();
+    
+    $handle = $this->uObject->RBOHandle;
+
+    $this->uObject->close();
+    
+    $this->uObject->open($handle);
+
+    $this->assertEquals("Tim", (string)$this->uObject->FirstName);    
   }
 }
