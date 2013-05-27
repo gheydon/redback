@@ -578,29 +578,28 @@ class uObject implements uAssocArraySource, \Iterator {
   /**
    * Implementation of the Inerator
    */
-
   public function rewind() {
-    $this->iterator_key = 0;
-    if (substr($this->fields[$this->iterator_key], 0, 4) == 'HID_') {
-      $this->next();
+    $this->_properties->rewind();
+    while (substr($this->_properties->key(), 0, 4) == 'HID_') {
+      $this->_properties->next();
     }
   }
 
   public function current() {
-    return $this->get($this->fields[$this->iterator_key]);
+    return $this->_properties->current();
   }
 
   public function key() {
-    return $this->fields[$this->iterator_key];
+    return $this->_properties->key();
   }
 
   public function next() {
     do {
-      $this->iterator_key++;
-    } while (isset($this->fields[$this->iterator_key]) && substr($this->fields[$this->iterator_key], 0, 4) == 'HID_');
+      $this->_properties->next();
+    } while ($this->_properties->valid() && substr($this->_properties->key(), 0, 4) == 'HID_');
   }
 
   public function valid() {
-    return isset($this->fields[$this->iterator_key]) && substr($this->fields[$this->iterator_key], 0, 4) != 'HID_';
+    return $this->_properties->valid() && substr($this->_properties->key(), 0, 4) != 'HID_';
   }
 }
