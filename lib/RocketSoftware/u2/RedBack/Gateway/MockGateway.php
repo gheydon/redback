@@ -46,7 +46,13 @@ class MockGateway extends uConnection implements uConnectionInterface {
         $step = array_shift($this->script[$this->objectName]);
       }
       else {
-        throw new uServerException("No more steps for object {$this->objectName}, method {$method}");
+        $updated = array();
+        foreach ($input_properties as $key => $value) {
+          if ($input_properties[$key]->isTainted()) {
+            $updated[] = $key;
+          }
+         }
+        throw new uServerException("No more steps for object {$this->objectName}, method {$method}, updated fields " . implode(', ', $updated));
       }
 
       if (!empty($step['request'])) {
