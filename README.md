@@ -20,6 +20,12 @@ To connect to the U2 Web DE server you will require the connection object for [R
 ### Opening a Web DE Object
 To open an object use the following.   
 `$object->open('EXMOD:Employee’);`
+### Authentication
+To authenticate your object against the server, a user and password can be passed while opening.   
+`$object->open(‘EXMOD:Employee’, ‘rbadmin’, ‘redback’);`
+### Quick Open
+All of the above can be put together for connecting quickly.   
+`$object = new RocketSoftware\u2\RedBack\uObject(‘RedBack4://127.0.0.1:8401’, ‘EXMOD:Employee’, ‘rbadmin’, ‘redback’);`
 ### Setting a property
 You can set properties used which have been configured in the RBO.   
 `$object->Name = ‘Test name’`   
