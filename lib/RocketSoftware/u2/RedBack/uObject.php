@@ -539,7 +539,9 @@ class uObject implements uAssocArraySource, \Iterator {
       throw new uException($this->_properties['HID_ALERT']);
     }
 
-    $this->RBOHandle = $this->_properties['HID_FORM_INST'] . ':' . $this->_properties['HID_USER'];
+    if (isset($this->_properties['HID_RECORDSET'])) {
+      $this->RBOHandle = $this->_properties['HID_FORM_INST'] . ':' . $this->_properties['HID_USER'];
+    }
   }
 
   protected function _authorise($obj, $user, $pass) {
