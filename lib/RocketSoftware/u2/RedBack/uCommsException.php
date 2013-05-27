@@ -17,7 +17,7 @@ class uCommsException extends uException {
       $this->debugLog = $debugLog;
     }
     
-    parent::_construct($message, $code);
+    parent::__construct($message, $code);
   }
   
   public function getMonitor() {
