@@ -33,6 +33,10 @@ class uObjectTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals("Nik's Musk Emporium", (string)$this->uObject->Name);
     
     $this->uObject->CustId = 2;
+    
+    foreach ($this->uObject as $key => $value) {
+      $this->assertNotRegExp('/^HID_/', $key);
+    }
   }
 
   public function testOpenFromConstructor() {
