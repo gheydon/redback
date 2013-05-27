@@ -4,7 +4,8 @@ namespace RocketSoftware\u2\RedBack;
 
 use \RocketSoftware\u2\RedBack\uQuery;
 use \RocketSoftware\u2\RedBack\uQueryItem;
-
+use RocketSoftware\u2\uException;
+use RocketSoftware\u2\uCommsException;
 
 /**
  * Used for manipulate the RedBack uQuery Objects
@@ -180,10 +181,13 @@ class uQuery implements \Iterator, \Countable {
     if ($position < $this->_fromitem || $position > $this->_uptoitem) {
       $pageno = intval($position / $this->_pagesize) + 1;
       $this->_rbo->set('HID_PAGENO', $pageno, TRUE);
-      if ($this->_rbo->callmethod('PageDisp') === FALSE) {
+      try {
+        $this->_rbo->callmethod('PageDisp');
+        $this->_setup();
+      }
+      catch (uCommsException $e) {
         $ret = FALSE;
       }
-      $this->_setup();
     }
     $this->_position = $position;
 
