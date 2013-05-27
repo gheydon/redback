@@ -340,6 +340,8 @@ class uObject implements uAssocArraySource, \Iterator {
         $this->_properties['MaxRows'] = $this->_properties['HID_MAX_ITEMS'];
       }
 
+      $properties->resetTaintFlag();
+
       return $query;
     }
     return TRUE;
