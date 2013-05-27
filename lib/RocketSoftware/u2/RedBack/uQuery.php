@@ -54,7 +54,7 @@ class uQuery implements \Iterator, \Countable {
       return $this->get($property);
     }
     else {
-      throw new \Exception(sprintf('Undefined property: %s::%s.', get_class($this), $property));
+      throw new uException(sprintf('Undefined property: %s::%s.', get_class($this), $property));
     }
   }
 
