@@ -60,6 +60,9 @@ class uQuery implements \Iterator, \Countable, \ArrayAccess {
   }
 
   /**
+   * @depreciated v1.0.0
+   * @depreciated this should not be used, use Array access instead.
+   *
    * Overload to allow getting of the fields by the standard PHP method of
    * reading properties.
    *
