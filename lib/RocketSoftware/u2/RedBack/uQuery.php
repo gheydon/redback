@@ -73,12 +73,7 @@ class uQuery implements \Iterator, \Countable, \ArrayAccess {
    */
 
   public function __get($property) {
-    if (in_array($property, $this->_fields)) {
-      return $this->get($property);
-    }
-    else {
-      throw new uException(sprintf('Undefined property: %s::%s.', get_class($this), $property));
-    }
+    return $this->get($property);
   }
 
   /**
