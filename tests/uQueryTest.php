@@ -28,5 +28,8 @@ class uQueryTest extends \PHPUnit_Framework_TestCase {
     foreach ($rs as $item) {
       NULL;
     }
+    
+    $this->assertEquals((string)$rs[5]['FIRST.NAME'], 'Mario');
+    $this->assertEquals((string)$rs[15]['FIRST.NAME'], 'Mike');
   }
 }

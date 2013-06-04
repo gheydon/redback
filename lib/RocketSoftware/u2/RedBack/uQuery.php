@@ -24,7 +24,7 @@ use RocketSoftware\u2\uCommsException;
  *
  * @package RocketSoftware\RedBack\uQuery
  */
-class uQuery implements \Iterator, \Countable {
+class uQuery implements \Iterator, \Countable, \ArrayAccess {
   /*
    * Public functions
    */
@@ -200,5 +200,36 @@ class uQuery implements \Iterator, \Countable {
     $this->_position = $this->_fromitem = ((string)$this->_rbo->get('HID_FROM_ITEM', TRUE) + 1);
     $this->_uptoitem = (string)$this->_rbo->get('HID_UPTO_ITEM', TRUE);
     $this->_pagesize = (string)$this->_rbo->get('HID_PAGE_SIZE', TRUE);
+  }
+  
+  /**
+   * Implement Array Access
+   */
+  
+  public function offsetExists($delta) {
+    if (is_numeric($delta) && $delta <= $this->_maxitems && $delta > 0) {
+      return TRUE;
+    }
+    return FALSE;
+  }
+  
+  public function offsetGet($delta) {
+    if (is_numeric($delta)) {
+      if ($this->_goto($delta)) {
+        return $this->get();
+      }
+      return NULL;
+    }
+    else {
+      throw new uException('Delta must be a numeric value.');
+    }
+  }
+  
+  public function offsetSet($delta, $value) {
+    throw new uException('uQuery is readonly.');
+  }
+  
+  public function offsetUnset($delta) {
+    throw new uException('uQuery is readonly.');
   }
 }
