@@ -32,4 +32,14 @@ class uQueryTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals((string)$rs[5]['FIRST.NAME'], 'Mario');
     $this->assertEquals((string)$rs[15]['FIRST.NAME'], 'Mike');
   }
+  
+  public function testEmployeeListByPage() {
+    $this->uObject->open('EXMOD:EmployeeList');
+    
+    $page = $this->uObject->Select()->getPage(2);
+    
+    foreach ($page as $id => $item) {
+      NULL;
+    }
+  }
 }

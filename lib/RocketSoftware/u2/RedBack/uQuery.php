@@ -2,8 +2,9 @@
 
 namespace RocketSoftware\u2\RedBack;
 
-use \RocketSoftware\u2\RedBack\uQuery;
-use \RocketSoftware\u2\RedBack\uQueryItem;
+use RocketSoftware\u2\RedBack\uQuery;
+use RocketSoftware\u2\RedBack\uQueryItem;
+use RocketSoftware\u2\RedBack\uQueryPage;
 use RocketSoftware\u2\uException;
 use RocketSoftware\u2\uCommsException;
 
@@ -35,6 +36,27 @@ class uQuery implements \Iterator, \Countable, \ArrayAccess {
     $this->_rbo = $rbo;
     $this->_fields = $rbo->get('HID_FIELDNAMES', TRUE);
     $this->_setup();
+  }
+
+  public function getPageNo() {
+    return $this->_pageno;
+  }
+
+  public function getPageSize() {
+    return $this->_pagesize;
+  }
+
+  public function getPage($page) {
+    $end = $this->getPageSize() * $page;
+    $start = $end - $this->getPageSize();
+
+    if ($start > $this->count()) {
+      throw new \uException('Page is after end if recordset.');
+    }
+    
+    if ($page) {
+      return new uQueryPage($this, $page);
+    }
   }
 
   /**

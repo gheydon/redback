@@ -44,3 +44,14 @@ The uQuery object is a standard PHP iterator and can be used with foreach() and 
 `foreach ($rs as $key => $item) {   
   echo “FirstName: {$item[‘FIRST.NAME’]}<br/>”;   
 }`
+
+uQuery doesn’t really work like a normal recordset where each record is retreived 1 at a time, but instead works by downloading an entire page in at a time. The page size is determinded by the ‘items_per_page’ which is set in the RBO and can also be set at runtime, before the initial select is called.
+
+Given this to allow paging via the object you can use the `::getPage()` to get the page of data that you want.
+
+`$page = $object->Select()->getPage(2);
+foreach ($page as $key => $item) {
+  echo “FirstName: {$item[‘FIRST.NAME’]}<br/>”;
+}`
+
+As you can see from the example above you can chain the getPage() command to get the additional information.
