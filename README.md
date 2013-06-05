@@ -1,5 +1,5 @@
 # U2 Web Development Environment (RedBack) for PHP [![Build Status](https://travis-ci.org/gheydon/redback.png)](https://travis-ci.org/gheydon/redback)
-Allows native communitcation with RocketSoftware’s U2 database Enviroments using the U2 Web Development Environment, and also providing methods which allow PHP to make greater use of the native U2 dynamic arrays.
+Allows native communitcation with RocketSoftware's U2 database Enviroments using the U2 Web Development Environment, and also providing methods which allow PHP to make greater use of the native U2 dynamic arrays.
 ## Compatibility
 ### U2 Web Development Environment (RedBack) 4
 Full support for Web DE 4.2.16+ in native PHP.
@@ -16,7 +16,7 @@ Installation via [composer](http://getcomposer.com) is the only method supported
 {
     "require": {
         // ...
-        “heydon/redback”: “1.0.x”
+        "heydon/redback": "1.0.x"
     }
 }
 ```
@@ -30,60 +30,60 @@ $object = new RocketSoftware\u2\RedBack\uObject();
 ### Connecting to the Web DE Server
 To connect to the U2 Web DE server you will require the connection object for [RedBack 4](https://github.com/gheydon/redback4). Once this is install you will be able to use the following to create the connection.   
 ``` php
-$object->connect(‘RedBack4://127.0.0.1:8401’);
+$object->connect('RedBack4://127.0.0.1:8401');
 ```
 ### Opening a Web DE Object
 To open an object use the following.   
 ``` php
-$object->open('EXMOD:Employee’);
+$object->open('EXMOD:Employee');
 ```
 ### Authentication
 To authenticate your object against the server, a user and password can be passed while opening.   
 ``` php
-$object->open(‘EXMOD:Employee’, ‘rbadmin’, ‘redback’);
+$object->open('EXMOD:Employee', 'rbadmin', 'redback');
 ```
 ### Quick Open
 All of the above can be put together for connecting quickly.   
 ``` php
-$object = new RocketSoftware\u2\RedBack\uObject(‘RedBack4://127.0.0.1:8401’, ‘EXMOD:Employee’, ‘rbadmin’, ‘redback’);
+$object = new RocketSoftware\u2\RedBack\uObject('RedBack4://127.0.0.1:8401', 'EXMOD:Employee', 'rbadmin', 'redback');
 ```
 ### Setting a property
 You can set properties used which have been configured in the RBO.   
 ``` php
-$object->Name = ‘Test name’;
+$object->Name = 'Test name';
 ```
-where name is the property “Name”. If the property contains a ‘.’ then to access the property using the uObject::set() method.
+where name is the property "Name". If the property contains a '.' then to access the property using the uObject::set() method.
 ### Getting the value of a property
 The same as setting a property you can also do the following:-   
 ``` php
 $name = $object->Name;
 ```
-As with settings properties with a ‘.’ in the property name you can use the uObject::get() method.
+As with settings properties with a '.' in the property name you can use the uObject::get() method.
 ### Calling a method
 Calling methods the same as the calling methods on the standard PHP object.   
 ``` php
 $object->ReadData();
 ```
-However there are also special methods, “Select” and “DispPage” which are on uQuery objects. in this case the uObject will return a uQuery object.   
+However there are also special methods, "Select" and "DispPage" which are on uQuery objects. in this case the uObject will return a uQuery object.   
 ``` php
 $rs = $object->Select();
 ```
 ### Using the uQuery object
 The uQuery object is a standard PHP iterator and can be used with foreach() and other methods to use iterators.   
 ``` php
-foreach ($rs as $key => $item) {   
-  echo “FirstName: {$item[‘FIRST.NAME’]}<br/>”;   
+foreach ($rs as $key => $item) {
+  echo "FirstName: {$item['FIRST.NAME']}<br/>";
 }
 ```
 
-uQuery doesn’t really work like a normal recordset where each record is retreived 1 at a time, but instead works by downloading an entire page in at a time. The page size is determinded by the ‘items_per_page’ which is set in the RBO and can also be set at runtime, before the initial select is called.
+uQuery doesn't really work like a normal recordset where each record is retreived 1 at a time, but instead works by downloading an entire page in at a time. The page size is determinded by the 'items_per_page' which is set in the RBO and can also be set at runtime, before the initial select is called.
 
 Given this to allow paging via the object you can use the `::getPage()` to get the page of data that you want.
 
 ``` php
 $page = $object->Select()->getPage(2);
 foreach ($page as $key => $item) {
-  echo “FirstName: {$item[‘FIRST.NAME’]}<br/>”;
+  echo "FirstName: {$item['FIRST.NAME']}<br/>";
 }
 ```
 
@@ -96,7 +96,7 @@ To use Redback in symfony you can create the RedBack object as a service, which 
 services:
   redback:
     class: RocketSoftware\u2\RedBack\uObject
-    arguments: [“RedBack4://127.0.0.1:8401”, NULL, NULL, NULL, FALSE]
+    arguments: ["RedBack4://127.0.0.1:8401", NULL, NULL, NULL, FALSE]
     scope: prototype
 ```
 To get the RedBack object in a controler do the following.
