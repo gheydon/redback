@@ -10,6 +10,17 @@ The major problem with version 5 is that it is no longer running on the old Redb
 
 However because I needed to build the uarray libraries to work with U2 Dynamic Arrays the actual handling of the raw data is almost done. There are areas which will need to be improved, such needing to be able to handle the internal data formats like dates and numbers which will mean that I will need to implement OCONV and ICONV methods to the uArray object.
 
+## Installation
+Installation via [composer](http://getcomposer.com) is the only method supported at this stage. Edit your composer.json to add the following.
+``` js
+{
+    "require": {
+        // ...
+        “heydon/redback”: “1.0.x”
+    }
+}
+```
+
 ## Usage
 ### Initilising the RedBack object
 To create a new uObject (RedBack connection object) which will allow access to the u2 Web Development Enviroment.   
