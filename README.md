@@ -50,22 +50,27 @@ $object = new RocketSoftware\u2\RedBack\uObject(‘RedBack4://127.0.0.1:8401’,
 ### Setting a property
 You can set properties used which have been configured in the RBO.   
 ``` php
-$object->Name = ‘Test name
-``’`   
+$object->Name = ‘Test name’;
+```
 where name is the property “Name”. If the property contains a ‘.’ then to access the property using the uObject::set() method.
 ### Getting the value of a property
 The same as setting a property you can also do the following:-   
-`$name = $object->Name;`   
+``` php
+$name = $object->Name;
+```
 As with settings properties with a ‘.’ in the property name you can use the uObject::get() method.
 ### Calling a method
 Calling methods the same as the calling methods on the standard PHP object.   
-`$object->ReadData();`   
+``` php
+$object->ReadData();
+```
 However there are also special methods, “Select” and “DispPage” which are on uQuery objects. in this case the uObject will return a uQuery object.   
-`$rs = $object->Select();`
+``` php
+$rs = $object->Select();
+```
 ### Using the uQuery object
 The uQuery object is a standard PHP iterator and can be used with foreach() and other methods to use iterators.   
 ``` php
-<?php
 foreach ($rs as $key => $item) {   
   echo “FirstName: {$item[‘FIRST.NAME’]}<br/>”;   
 }
@@ -76,7 +81,6 @@ uQuery doesn’t really work like a normal recordset where each record is retrei
 Given this to allow paging via the object you can use the `::getPage()` to get the page of data that you want.
 
 ``` php
-<?php
 $page = $object->Select()->getPage(2);
 foreach ($page as $key => $item) {
   echo “FirstName: {$item[‘FIRST.NAME’]}<br/>”;
@@ -97,6 +101,5 @@ services:
 ```
 To get the RedBack object in a controler do the following.
 ``` php
-<?php
     $uObject = $this->get('redback');
 ```
