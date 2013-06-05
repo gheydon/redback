@@ -24,22 +24,34 @@ Installation via [composer](http://getcomposer.com) is the only method supported
 ## Usage
 ### Initilising the RedBack object
 To create a new uObject (RedBack connection object) which will allow access to the u2 Web Development Enviroment.   
-`$object = new RocketSoftware\u2\RedBack\uObject();`
+``` php
+$object = new RocketSoftware\u2\RedBack\uObject();
+```
 ### Connecting to the Web DE Server
 To connect to the U2 Web DE server you will require the connection object for [RedBack 4](https://github.com/gheydon/redback4). Once this is install you will be able to use the following to create the connection.   
-`$object->connect(‘RedBack4://127.0.0.1:8401’);`
+``` php
+$object->connect(‘RedBack4://127.0.0.1:8401’);
+```
 ### Opening a Web DE Object
 To open an object use the following.   
-`$object->open('EXMOD:Employee’);`
+``` php
+$object->open('EXMOD:Employee’);
+```
 ### Authentication
 To authenticate your object against the server, a user and password can be passed while opening.   
-`$object->open(‘EXMOD:Employee’, ‘rbadmin’, ‘redback’);`
+``` php
+$object->open(‘EXMOD:Employee’, ‘rbadmin’, ‘redback’);
+```
 ### Quick Open
 All of the above can be put together for connecting quickly.   
-`$object = new RocketSoftware\u2\RedBack\uObject(‘RedBack4://127.0.0.1:8401’, ‘EXMOD:Employee’, ‘rbadmin’, ‘redback’);`
+``` php
+$object = new RocketSoftware\u2\RedBack\uObject(‘RedBack4://127.0.0.1:8401’, ‘EXMOD:Employee’, ‘rbadmin’, ‘redback’);
+```
 ### Setting a property
 You can set properties used which have been configured in the RBO.   
-`$object->Name = ‘Test name’`   
+``` php
+$object->Name = ‘Test name
+``’`   
 where name is the property “Name”. If the property contains a ‘.’ then to access the property using the uObject::set() method.
 ### Getting the value of a property
 The same as setting a property you can also do the following:-   
@@ -52,17 +64,26 @@ However there are also special methods, “Select” and “DispPage” which ar
 `$rs = $object->Select();`
 ### Using the uQuery object
 The uQuery object is a standard PHP iterator and can be used with foreach() and other methods to use iterators.   
-`foreach ($rs as $key => $item) {   
+``` php
+<?php
+foreach ($rs as $key => $item) {   
   echo “FirstName: {$item[‘FIRST.NAME’]}<br/>”;   
-}`
+}
+```
 
 uQuery doesn’t really work like a normal recordset where each record is retreived 1 at a time, but instead works by downloading an entire page in at a time. The page size is determinded by the ‘items_per_page’ which is set in the RBO and can also be set at runtime, before the initial select is called.
 
 Given this to allow paging via the object you can use the `::getPage()` to get the page of data that you want.
 
-`$page = $object->Select()->getPage(2);
+``` php
+<?php
+$page = $object->Select()->getPage(2);
 foreach ($page as $key => $item) {
   echo “FirstName: {$item[‘FIRST.NAME’]}<br/>”;
-}`
+}
+```
+
+As you can see from the example above you can chain the getPage() command to get the additional information.
+
 
 As you can see from the example above you can chain the getPage() command to get the additional information.
