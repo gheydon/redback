@@ -85,5 +85,18 @@ foreach ($page as $key => $item) {
 
 As you can see from the example above you can chain the getPage() command to get the additional information.
 
+##Symfony
+To use Redback in symfony you can create the RedBack object as a service, which can then be access.
 
-As you can see from the example above you can chain the getPage() command to get the additional information.
+``` yml
+services:
+  redback:
+    class: RocketSoftware\u2\RedBack\uObject
+    arguments: [“RedBack4://127.0.0.1:8401”, NULL, NULL, NULL, FALSE]
+    scope: prototype
+```
+To get the RedBack object in a controler do the following.
+``` php
+<?php
+    $uObject = $this->get('redback');
+```
