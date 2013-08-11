@@ -8,7 +8,7 @@ class uCommsException extends uException {
   private $debugLog;
   private $monitorLog;
   
-  public function __construct($message = NULL, $code = 0, array $monitorLog = NULL, array $debugLog = NULL) {
+  public function __construct($message = NULL, $code = 0, array $monitorLog = array(), array $debugLog = array(), \Exception $previous = NULL) {
     if ($monitorLog) {
       $this->monitorLog = $monitorLog;
     }
@@ -17,7 +17,7 @@ class uCommsException extends uException {
       $this->debugLog = $debugLog;
     }
     
-    parent::__construct($message, $code);
+    parent::__construct($message, $code, $previous);
   }
   
   public function getMonitor() {

@@ -534,7 +534,7 @@ class uObject implements uAssocArraySource, \Iterator {
     }
     catch (uCommsException $e) {
       // This is most likely due to a "No response" return which is generally a object which doesn't exists, so re-throw a more sensible error.
-      throw new uCommsException('Unable to open RBO '. $object, 0, $e);
+      throw new uCommsException('Unable to open RBO '. $object, 0, array(), array(), $e);
     }
 
     if (isset($this->_properties['HID_ERROR']) && $this->_properties['HID_ERROR'] > 0) {
