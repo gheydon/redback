@@ -327,7 +327,7 @@ class uObject implements uAssocArraySource, \Iterator {
 
     // Check that there are no major errors.
     if (isset($this->_properties['HID_ERROR']) && (string)$this->_properties['HID_ERROR'] != 0) {
-      throw new uException($this->get('HID_ALERT', TRUE));
+      throw new uException($this->get('HID_ALERT', TRUE), (string)$this->_properties['HID_ERROR']);
     }
     else if ($this->_properties->fieldExists('HID_FIELDNAMES')) {
       $query = new uQuery($this);
@@ -541,8 +541,8 @@ class uObject implements uAssocArraySource, \Iterator {
       throw new uCommsException('Unable to open RBO '. $object, 0, array(), array(), $e);
     }
 
-    if (isset($this->_properties['HID_ERROR']) && $this->_properties['HID_ERROR'] > 0) {
-      throw new uException($this->_properties['HID_ALERT']);
+    if (isset($this->_properties['HID_ERROR']) && (string)$this->_properties['HID_ERROR'] > 0) {
+      throw new uException($this->_properties['HID_ALERT'], (string)$this->_properties['HID_ERROR']);
     }
 
     if (isset($this->_properties['HID_RECORDSET'])) {
