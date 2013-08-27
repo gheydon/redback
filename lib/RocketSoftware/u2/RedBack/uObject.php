@@ -524,6 +524,10 @@ class uObject implements uAssocArraySource, \Iterator {
       $this->_properties['HID_USER'] = $handle[1];
       $object = ',.Refresh()';
     }
+    else {
+      // Since this is a fresh object get rid of any handles;
+      unset($this->_properties['HID_FORM_INST'], $this->_properties['HID_USER']);
+    }
     try {
       list($properties, $monitorData, $debugData) = $this->connection->call($object, $this->_properties, $this->isMonitoring(), $this->isDebugging());
       $this->_properties = $properties;
