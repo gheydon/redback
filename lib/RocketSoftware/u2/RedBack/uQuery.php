@@ -6,7 +6,7 @@ use RocketSoftware\u2\RedBack\uQuery;
 use RocketSoftware\u2\RedBack\uQueryItem;
 use RocketSoftware\u2\RedBack\uQueryPage;
 use RocketSoftware\u2\uException;
-use RocketSoftware\u2\uCommsException;
+use RocketSoftware\u2\RedBack\uCommsException;
 
 /**
  * Used for manipulate the RedBack uQuery Objects
