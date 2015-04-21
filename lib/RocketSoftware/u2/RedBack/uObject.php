@@ -41,7 +41,7 @@ if (!defined('AM')) {
  *
  * @package RocketSoftware\u2\RedBack\uObject
  */
-class uObject implements uAssocArraySource, \Iterator {
+class uObject implements uAssocArraySource, \Iterator, \ArrayAccess {
 
   protected $connection;
   private $fields = array();
@@ -492,6 +492,22 @@ class uObject implements uAssocArraySource, \Iterator {
 
   public function __getStats() {
     return $this->_monitor_data;
+  }
+
+  public function offsetExists($property) {
+    return $this->_properties->fieldExists($property);
+  }
+
+  public function offsetGet($property) {
+    return $this->get($property, TRUE);
+  }
+
+  public function offsetSet($property, $value) {
+    $this->set($property, $value, TRUE);
+  }
+
+  public function offsetUnset($property) {
+    $this->set($property, '', TRUE);
   }
 
   /*
