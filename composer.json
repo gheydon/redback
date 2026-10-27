@@ -18,7 +18,7 @@
     "heydon/uarray": "1.0.*@beta"
   },
   "require-dev": {
-    "symfony/yaml": "2.2.*",
+    "symfony/yaml": "^5.4.52",
     "heydon/redback4": "1.0.*@dev"
   },
   "suggest": {
